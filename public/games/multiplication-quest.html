@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Multiplication Quest 🧙</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #d97706 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.4);
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+  z-index: 10;
+}
+
+.hearts { font-size: 1.4rem; letter-spacing: 2px; }
+
+.level-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.stat {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0,0,0,0.15);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+  transition: width 0.5s ease;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.problem-area {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.problem-text {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 3px 3px 0 #92400e;
+  background: rgba(0,0,0,0.2);
+  padding: 8px 24px;
+  border-radius: 16px;
+}
+
+.answers {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 20px 24px;
+  background: rgba(255,255,255,0.3);
+  z-index: 10;
+}
+
+.answer-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+}
+
+.answer-btn:active { transform: scale(0.93); }
+.answer-btn.correct { background: linear-gradient(135deg, #22c55e, #16a34a) !important; }
+.answer-btn.wrong { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
+
+.feedback {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: 900;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+}
+
+.feedback.show { animation: feedbackPop 0.8s ease forwards; }
+
+@keyframes feedbackPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+}
+
+.screen-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  gap: 16px;
+  padding: 30px;
+}
+
+.screen-overlay h1 { color: #fff; font-size: 2.2rem; text-align: center; }
+.screen-overlay h2 { color: #fbbf24; font-size: 1.4rem; text-align: center; }
+.screen-overlay p { color: rgba(255,255,255,0.85); font-size: 1rem; text-align: center; max-width: 300px; }
+
+.big-btn {
+  padding: 16px 44px;
+  border: 4px solid #fff;
+  border-radius: 60px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.big-btn:active { transform: scale(0.95); }
+
+.level-select { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+.level-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  border: 3px solid #fff;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.level-btn.locked { opacity: 0.4; }
+
+.hero-preview { font-size: 4rem; animation: heroBob 1s ease-in-out infinite; }
+
+@keyframes heroBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="hud hidden" id="hud">
+    <div class="hearts" id="hearts"></div>
+    <div class="level-badge" id="levelBadge">Level 1</div>
+    <div class="stat" id="scoreDisplay">0</div>
+  </div>
+
+  <div class="progress-bar hidden" id="progressBar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="problem-area hidden" id="problemArea">
+      <div class="problem-text" id="problemText"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="screen-overlay" id="titleScreen">
+      <div class="hero-preview">🧙‍♀️</div>
+      <h1>Multiplication Quest</h1>
+      <h2>Cast spells with math!</h2>
+      <p>Solve × and ÷ problems before monsters reach you!</p>
+      <div class="level-select" id="levelSelect"></div>
+    </div>
+
+    <div class="screen-overlay hidden" id="levelComplete">
+      <h1 id="completeTitle">Level Complete!</h1>
+      <h2 id="completeStars"></h2>
+      <p id="completeMsg"></p>
+      <button class="big-btn" id="nextLevelBtn">Next Level</button>
+      <button class="big-btn" style="background: linear-gradient(135deg, #60a5fa, #3b82f6); font-size: 1rem; padding: 12px 30px;" id="backToMenuBtn">Menu</button>
+    </div>
+
+    <div class="screen-overlay hidden" id="gameOver">
+      <h1>Oh No!</h1>
+      <h2>The wizard needs rest</h2>
+      <p id="gameOverMsg"></p>
+      <button class="big-btn" id="retryBtn">Try Again</button>
+    </div>
+  </div>
+
+  <div class="answers hidden" id="answers">
+    <button class="answer-btn" id="ans0"></button>
+    <button class="answer-btn" id="ans1"></button>
+    <button class="answer-btn" id="ans2"></button>
+    <button class="answer-btn" id="ans3"></button>
+  </div>
+</div>
+
+<script>
+const MONSTERS_PER_LEVEL = 8;
+const MAX_HEARTS = 3;
+
+// Level definitions with multiplication and division
+const LEVELS = [
+  { id: 1, name: '×2, ×5, ×10', gen: () => genMultiply([2, 5, 10], 12), speed: 10 },
+  { id: 2, name: '×3, ×4', gen: () => genMultiply([3, 4], 12), speed: 11 },
+  { id: 3, name: '×6, ×7, ×8', gen: () => genMultiply([6, 7, 8], 12), speed: 12 },
+  { id: 4, name: '×9, ×11, ×12', gen: () => genMultiply([9, 11, 12], 12), speed: 13 },
+  { id: 5, name: 'All ×1-12', gen: () => genMultiply([1,2,3,4,5,6,7,8,9,10,11,12], 12), speed: 14 },
+  { id: 6, name: 'Division', gen: () => genDivide([2,3,4,5,6,7,8,9,10,11,12], 12), speed: 12 },
+  { id: 7, name: 'Mixed ×÷', gen: () => genMixed(), speed: 15 },
+];
+
+const MONSTER_TYPES = [
+  { name: 'Slime', color: '#fbbf24', eyeColor: '#fff', scale: 0.7, spikes: 0, teeth: 1 },
+  { name: 'Goblin', color: '#4ade80', eyeColor: '#fff', scale: 0.8, spikes: 0, teeth: 2 },
+  { name: 'Orc', color: '#f97316', eyeColor: '#fef3c7', scale: 0.95, spikes: 0, teeth: 3 },
+  { name: 'Demon', color: '#ef4444', eyeColor: '#fef08a', scale: 1.1, spikes: 2, teeth: 4 },
+  { name: 'Dragon', color: '#8b5cf6', eyeColor: '#fcd34d', scale: 1.25, spikes: 4, teeth: 5 },
+  { name: 'Lich', color: '#1f2937', eyeColor: '#22c55e', scale: 1.4, spikes: 5, teeth: 5 },
+  { name: 'Titan', color: '#7c3aed', eyeColor: '#ef4444', scale: 1.5, spikes: 6, teeth: 6 },
+  { name: 'Boss', color: '#0f172a', eyeColor: '#fbbf24', scale: 1.6, spikes: 8, teeth: 7 },
+];
+
+let state = {
+  screen: 'title',
+  level: 1,
+  monster: 0,
+  hearts: MAX_HEARTS,
+  score: 0,
+  problem: null,
+  choices: [],
+  correctIdx: -1,
+  wrongOnce: false,
+  answering: true,
+  wizardX: 0,
+  monsterX: 0,
+  monsterAlive: true,
+  monsterShake: 0,
+  monsterWalking: false,
+  monsterBob: 0,
+  casting: false,
+  castPhase: 0,
+  attackType: 'fireball',
+  fireball: null,
+  lightning: null,
+  particles: [],
+  walkBob: 0,
+  staffGlow: 0,
+  highestUnlocked: parseInt(localStorage.getItem('mq_unlocked') || '1'),
+};
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function genMultiply(tables, maxMultiplier) {
+  const table = tables[Math.floor(Math.random() * tables.length)];
+  const mult = randInt(1, maxMultiplier);
+  return { text: `${mult} × ${table} = ?`, answer: mult * table };
+}
+
+function genDivide(divisors, maxQuotient) {
+  const divisor = divisors[Math.floor(Math.random() * divisors.length)];
+  const quotient = randInt(1, maxQuotient);
+  const dividend = divisor * quotient;
+  return { text: `${dividend} ÷ ${divisor} = ?`, answer: quotient };
+}
+
+function genMixed() {
+  if (Math.random() < 0.5) {
+    return genMultiply([1,2,3,4,5,6,7,8,9,10,11,12], 12);
+  } else {
+    return genDivide([2,3,4,5,6,7,8,9,10,11,12], 12);
+  }
+}
+
+function generateChoices(answer) {
+  const choices = new Set([answer]);
+  while (choices.size < 4) {
+    let wrong;
+    const offset = randInt(1, Math.max(5, Math.floor(answer * 0.3)));
+    wrong = answer + (Math.random() < 0.5 ? offset : -offset);
+    if (wrong > 0 && wrong !== answer) choices.add(wrong);
+  }
+  const arr = Array.from(choices);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+const $ = id => document.getElementById(id);
+const canvas = $('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  const wrapper = canvas.parentElement;
+  canvas.width = wrapper.clientWidth * devicePixelRatio;
+  canvas.height = wrapper.clientHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+const W = () => canvas.width / devicePixelRatio;
+const H = () => canvas.height / devicePixelRatio;
+
+function drawGround() {
+  const w = W(), h = H();
+  const groundY = h * 0.72;
+
+  const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+  sky.addColorStop(0, '#fef3c7');
+  sky.addColorStop(1, '#fde68a');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, groundY);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  for (let i = 0; i < 10; i++) {
+    const x = (i * 80 + Date.now() * 0.008) % w;
+    const y = 25 + (i * 37) % (groundY * 0.4);
+    ctx.beginPath();
+    ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  [[0.12, 0.1], [0.5, 0.06], [0.88, 0.12]].forEach(([px, py]) => {
+    const x = w * px, y = h * py;
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.arc(x + 14, y - 4, 12, 0, Math.PI * 2);
+    ctx.arc(x + 24, y, 14, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  const gnd = ctx.createLinearGradient(0, groundY, 0, h);
+  gnd.addColorStop(0, '#84cc16');
+  gnd.addColorStop(1, '#4d7c0f');
+  ctx.fillStyle = gnd;
+  ctx.fillRect(0, groundY, w, h - groundY);
+
+  ctx.fillStyle = '#a3a3a3';
+  ctx.fillRect(0, groundY + 8, w, 22);
+}
+
+function drawWizard(x, y, bob, casting, staffGlow) {
+  const by = Math.sin(bob) * 3;
+  ctx.save();
+  ctx.translate(x, y + by);
+
+  // Robe (golden/orange for Emma's wizard)
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.moveTo(-16, -20);
+  ctx.lineTo(-20, 16);
+  ctx.lineTo(20, 16);
+  ctx.lineTo(16, -20);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#7c3aed';
+  ctx.fillRect(-20, 12, 40, 4);
+
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(-14, -2, 28, 5);
+
+  ctx.fillStyle = '#fde68a';
+  ctx.beginPath();
+  ctx.arc(0, -32, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hair (long, for female wizard)
+  ctx.fillStyle = '#92400e';
+  ctx.beginPath();
+  ctx.arc(0, -36, 14, Math.PI * 0.8, Math.PI * 0.2, true);
+  ctx.lineTo(12, -10);
+  ctx.lineTo(-12, -10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Hat
+  ctx.fillStyle = '#7c3aed';
+  ctx.beginPath();
+  ctx.moveTo(-14, -40);
+  ctx.lineTo(0, -68);
+  ctx.lineTo(14, -40);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.fillStyle = '#6d28d9';
+  ctx.beginPath();
+  ctx.ellipse(0, -40, 18, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#fbbf24';
+  drawStar(3, -54, 5);
+
+  ctx.fillStyle = '#1e293b';
+  ctx.beginPath();
+  ctx.arc(-4, -34, 2, 0, Math.PI * 2);
+  ctx.arc(4, -34, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Staff
+  ctx.save();
+  ctx.translate(20, -10);
+  if (casting) ctx.rotate(-0.3);
+  
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(-2, -45, 4, 55);
+  
+  if (staffGlow > 0) {
+    ctx.shadowColor = state.attackType === 'fireball' ? '#f97316' : '#a78bfa';
+    ctx.shadowBlur = 20 * staffGlow;
+  }
+  ctx.fillStyle = state.attackType === 'fireball' ? '#f97316' : '#a78bfa';
+  ctx.beginPath();
+  ctx.arc(0, -50, 8 + staffGlow * 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  
+  ctx.fillStyle = state.attackType === 'fireball' ? '#fbbf24' : '#c4b5fd';
+  ctx.beginPath();
+  ctx.arc(0, -50, 4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.restore();
+
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(-14, 14, 10, 5);
+  ctx.fillRect(4, 14, 10, 5);
+
+  ctx.restore();
+}
+
+function drawStar(x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+    ctx[i === 0 ? 'moveTo' : 'lineTo'](x + Math.cos(angle) * r, y + Math.sin(angle) * r);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawFireball(fb) {
+  if (!fb) return;
+  ctx.save();
+  ctx.translate(fb.x, fb.y);
+  ctx.shadowColor = '#f97316';
+  ctx.shadowBlur = 25;
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(0, 0, fb.size + 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f97316';
+  ctx.beginPath();
+  ctx.arc(0, 0, fb.size, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.arc(0, 0, fb.size * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawLightning(lightning) {
+  if (!lightning) return;
+  const { x, progress } = lightning;
+  const groundY = H() * 0.72;
+  
+  if (progress < 1) {
+    ctx.save();
+    ctx.shadowColor = '#a78bfa';
+    ctx.shadowBlur = 30;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    let ly = 0;
+    const targetY = groundY - 20;
+    for (let i = 1; i <= 8; i++) {
+      ly += targetY / 8;
+      ctx.lineTo(x + (Math.random() - 0.5) * 40, ly * Math.min(progress * 1.5, 1));
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#e9d5ff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    
+    if (progress > 0.4 && progress < 0.6) {
+      ctx.fillStyle = `rgba(233, 213, 255, ${0.3})`;
+      ctx.fillRect(0, 0, W(), groundY);
+    }
+  }
+}
+
+function drawMonster(x, y, monsterIndex, alive, shake, bob, levelScale) {
+  if (!alive) return;
+  
+  const type = MONSTER_TYPES[Math.min(monsterIndex, MONSTER_TYPES.length - 1)];
+  // Scale = base type scale × level multiplier × within-level growth
+  const s = type.scale * (levelScale || 1);
+  const sx = shake > 0 ? Math.sin(shake * 15) * 5 : 0;
+  const by = Math.sin(bob) * 2;
+
+  ctx.save();
+  ctx.translate(x + sx, y + by);
+  ctx.scale(s, s);
+
+  ctx.fillStyle = type.color;
+  ctx.beginPath();
+  ctx.ellipse(0, -20, 30, 26, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (type.spikes > 0) {
+    ctx.fillStyle = darkenColor(type.color, 30);
+    for (let i = 0; i < type.spikes; i++) {
+      const angle = Math.PI + (i - (type.spikes - 1) / 2) * 0.25;
+      ctx.save();
+      ctx.translate(Math.cos(angle) * 25, -20 + Math.sin(angle) * 20);
+      ctx.rotate(angle + Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-4, -12);
+      ctx.lineTo(4, -12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  ctx.fillStyle = darkenColor(type.color, 20);
+  ctx.beginPath();
+  ctx.moveTo(-18, -38);
+  ctx.lineTo(-22, -52 - type.spikes);
+  ctx.lineTo(-10, -40);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(18, -38);
+  ctx.lineTo(22, -52 - type.spikes);
+  ctx.lineTo(10, -40);
+  ctx.fill();
+
+  ctx.fillStyle = type.eyeColor;
+  const eyeSize = 9 + type.spikes * 0.5;
+  ctx.beginPath();
+  ctx.arc(-10, -26, eyeSize, 0, Math.PI * 2);
+  ctx.arc(10, -26, eyeSize, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = type.spikes >= 4 ? '#ef4444' : '#1e1b4b';
+  ctx.beginPath();
+  ctx.arc(-8, -25, eyeSize * 0.4, 0, Math.PI * 2);
+  ctx.arc(12, -25, eyeSize * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#1e1b4b';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(-18, -34);
+  ctx.lineTo(-4, -30);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(18, -34);
+  ctx.lineTo(4, -30);
+  ctx.stroke();
+
+  ctx.fillStyle = '#1e1b4b';
+  ctx.beginPath();
+  ctx.ellipse(0, -10, 12 + type.teeth, 7, 0, 0, Math.PI);
+  ctx.fill();
+
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < type.teeth; i++) {
+    const tx = -8 + (16 / (type.teeth - 1 || 1)) * i;
+    ctx.beginPath();
+    ctx.moveTo(tx - 2, -10);
+    ctx.lineTo(tx, -5);
+    ctx.lineTo(tx + 2, -10);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = type.color;
+  ctx.beginPath();
+  ctx.ellipse(-12, 5, 8, 4, 0, 0, Math.PI * 2);
+  ctx.ellipse(12, 5, 8, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function darkenColor(hex, amount) {
+  const num = parseInt(hex.slice(1), 16);
+  return `rgb(${Math.max(0,(num>>16)-amount)},${Math.max(0,((num>>8)&0xff)-amount)},${Math.max(0,(num&0xff)-amount)})`;
+}
+
+function spawnParticles(x, y, colors, count) {
+  for (let i = 0; i < count; i++) {
+    state.particles.push({
+      x: x + (Math.random() - 0.5) * 30,
+      y: y + (Math.random() - 0.5) * 30,
+      vx: (Math.random() - 0.5) * 10,
+      vy: -Math.random() * 8 - 2,
+      r: Math.random() * 8 + 4,
+      life: 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    });
+  }
+}
+
+function drawParticles() {
+  state.particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function startLevel(lvl) {
+  state.level = lvl;
+  state.monster = 0;
+  state.hearts = MAX_HEARTS;
+  state.screen = 'playing';
+  state.wizardX = W() * 0.12;
+  state.particles = [];
+  state.casting = false;
+  state.fireball = null;
+  state.lightning = null;
+
+  $('titleScreen').classList.add('hidden');
+  $('levelComplete').classList.add('hidden');
+  $('gameOver').classList.add('hidden');
+  $('hud').classList.remove('hidden');
+  $('progressBar').classList.remove('hidden');
+  $('answers').classList.remove('hidden');
+
+  updateHUD();
+  nextMonster();
+}
+
+function nextMonster() {
+  if (state.monster >= MONSTERS_PER_LEVEL) { levelWon(); return; }
+
+  const lvl = LEVELS[state.level - 1];
+  state.problem = lvl.gen();
+  state.choices = generateChoices(state.problem.answer);
+  state.correctIdx = state.choices.indexOf(state.problem.answer);
+  state.wrongOnce = false;
+  state.answering = true;
+  state.monsterAlive = true;
+  state.monsterShake = 0;
+  state.casting = false;
+  state.castPhase = 0;
+  state.staffGlow = 0;
+  state.fireball = null;
+  state.lightning = null;
+  state.monsterX = W() * 0.88;
+  state.monsterWalking = true;
+  state.monsterBob = 0;
+  state.attackType = Math.random() < 0.5 ? 'fireball' : 'lightning';
+
+  $('problemText').textContent = state.problem.text;
+  $('problemArea').classList.remove('hidden');
+
+  state.choices.forEach((val, i) => {
+    const btn = $('ans' + i);
+    btn.textContent = val;
+    btn.className = 'answer-btn';
+    btn.disabled = false;
+  });
+
+  updateHUD();
+}
+
+function handleAnswer(idx) {
+  if (!state.answering || state.screen !== 'playing') return;
+
+  const btn = $('ans' + idx);
+
+  if (idx === state.correctIdx) {
+    state.answering = false;
+    state.monsterWalking = false;
+    btn.classList.add('correct');
+    state.score += state.wrongOnce ? 5 : 10;
+    state.casting = true;
+    state.castPhase = 0;
+    showFeedback(['Magic!', 'Zap!', 'Pow!', 'Boom!'][Math.floor(Math.random() * 4)], '#f59e0b');
+    $('problemArea').classList.add('hidden');
+    // Don't increment monster yet - wait for death animation
+    updateHUD();
+  } else {
+    btn.classList.add('wrong');
+    btn.disabled = true;
+    state.monsterShake = 1;
+    if (state.wrongOnce) {
+      state.hearts--;
+      showFeedback('Ouch!', '#ef4444');
+      updateHUD();
+      if (state.hearts <= 0) {
+        state.answering = false;
+        state.monsterWalking = false;
+        setTimeout(() => gameOverScreen(), 800);
+        return;
+      }
+    } else {
+      showFeedback('Try again!', '#f59e0b');
+      state.wrongOnce = true;
+    }
+  }
+}
+
+function monsterReachedWizard() {
+  state.answering = false;
+  state.monsterWalking = false;
+  state.hearts--;
+  showFeedback('Too slow!', '#ef4444');
+  updateHUD();
+  
+  if (state.hearts <= 0) {
+    setTimeout(() => gameOverScreen(), 800);
+  } else {
+    setTimeout(() => {
+      state.monsterAlive = false;
+      spawnParticles(state.monsterX, H() * 0.72 - 20, ['#ef4444', '#fbbf24'], 15);
+      setTimeout(nextMonster, 600);
+    }, 500);
+  }
+}
+
+function showFeedback(text, color) {
+  const el = $('feedback');
+  el.textContent = text;
+  el.style.color = color;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function levelWon() {
+  state.screen = 'levelComplete';
+  $('problemArea').classList.add('hidden');
+  $('answers').classList.add('hidden');
+
+  if (state.level >= state.highestUnlocked && state.level < LEVELS.length) {
+    state.highestUnlocked = state.level + 1;
+    localStorage.setItem('mq_unlocked', state.highestUnlocked);
+  }
+
+  const stars = state.hearts === 3 ? 3 : state.hearts === 2 ? 2 : 1;
+  $('completeTitle').textContent = state.level >= LEVELS.length ? 'Victory!' : 'Level Complete!';
+  $('completeStars').textContent = '⭐'.repeat(stars);
+  $('completeMsg').textContent = `Score: ${state.score}`;
+  $('nextLevelBtn').classList.toggle('hidden', state.level >= LEVELS.length);
+
+  setTimeout(() => $('levelComplete').classList.remove('hidden'), 400);
+}
+
+function gameOverScreen() {
+  state.screen = 'gameOver';
+  $('problemArea').classList.add('hidden');
+  $('answers').classList.add('hidden');
+  $('gameOverMsg').textContent = `Score: ${state.score}`;
+  $('gameOver').classList.remove('hidden');
+}
+
+function showTitle() {
+  state.screen = 'title';
+  ['hud','progressBar','answers','problemArea','levelComplete','gameOver'].forEach(id => $(id).classList.add('hidden'));
+  $('titleScreen').classList.remove('hidden');
+  state.score = 0;
+  buildLevelSelect();
+}
+
+function updateHUD() {
+  $('hearts').textContent = '❤️'.repeat(state.hearts) + '🤍'.repeat(MAX_HEARTS - state.hearts);
+  $('levelBadge').textContent = 'Level ' + state.level;
+  $('scoreDisplay').textContent = '⭐ ' + state.score;
+  $('progressFill').style.width = (state.monster / MONSTERS_PER_LEVEL * 100) + '%';
+}
+
+function buildLevelSelect() {
+  const sel = $('levelSelect');
+  sel.innerHTML = '';
+  LEVELS.forEach(lvl => {
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (lvl.id > state.highestUnlocked ? ' locked' : '');
+    btn.textContent = lvl.id <= state.highestUnlocked ? lvl.id : '🔒';
+    btn.title = lvl.name;
+    btn.addEventListener('click', () => { if (lvl.id <= state.highestUnlocked) startLevel(lvl.id); });
+    sel.appendChild(btn);
+  });
+}
+
+[0, 1, 2, 3].forEach(i => $('ans' + i).addEventListener('click', () => handleAnswer(i)));
+$('nextLevelBtn').addEventListener('click', () => { if (state.level < LEVELS.length) startLevel(state.level + 1); });
+$('backToMenuBtn').addEventListener('click', showTitle);
+$('retryBtn').addEventListener('click', () => startLevel(state.level));
+
+let lastTime = 0;
+
+function gameLoop(time) {
+  const dt = Math.min((time - lastTime) / 1000, 0.05);
+  lastTime = time;
+
+  resize();
+  const w = W(), h = H();
+
+  ctx.clearRect(0, 0, w, h);
+  drawGround();
+
+  if (state.screen === 'playing' || state.screen === 'levelComplete' || state.screen === 'gameOver') {
+    const groundY = h * 0.72 - 5;
+    
+    if (state.monsterWalking && state.monsterAlive) {
+      const lvl = LEVELS[state.level - 1];
+      state.monsterX -= lvl.speed * dt;
+      state.monsterBob += dt * 8;
+      if (state.monsterX <= state.wizardX + 60) monsterReachedWizard();
+    }
+
+    if (state.casting) {
+      state.castPhase += dt;
+      
+      if (state.castPhase < 0.5) {
+        state.staffGlow = state.castPhase / 0.5;
+      } else if (state.castPhase < 0.6 && !state.fireball && !state.lightning) {
+        state.staffGlow = 1;
+        if (state.attackType === 'fireball') {
+          state.fireball = { x: state.wizardX + 32, y: groundY - 55, size: 12, targetX: state.monsterX, targetY: groundY - 20 };
+        } else {
+          state.lightning = { x: state.monsterX, progress: 0 };
+        }
+      } else if (state.castPhase < 2.5) {
+        state.staffGlow = Math.max(0, 1 - (state.castPhase - 0.6) * 2);
+        
+        if (state.fireball) {
+          const speed = 500 * dt;
+          const dx = state.fireball.targetX - state.fireball.x;
+          const dy = state.fireball.targetY - state.fireball.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 10) {
+            state.fireball.x += (dx / dist) * speed;
+            state.fireball.y += (dy / dist) * speed;
+          } else {
+            if (state.monsterAlive) {
+              state.monsterAlive = false;
+              const type = MONSTER_TYPES[Math.min(state.monster, MONSTER_TYPES.length - 1)];
+              spawnParticles(state.monsterX, groundY - 20, [type.color, '#f97316', '#fbbf24'], 30);
+            }
+            state.fireball = null;
+          }
+        }
+        
+        if (state.lightning) {
+          state.lightning.progress += dt * 4;
+          if (state.lightning.progress > 0.4 && state.monsterAlive) {
+            state.monsterAlive = false;
+            const type = MONSTER_TYPES[Math.min(state.monster, MONSTER_TYPES.length - 1)];
+            spawnParticles(state.monsterX, groundY - 20, [type.color, '#a78bfa', '#e9d5ff'], 30);
+          }
+          if (state.lightning.progress > 1) state.lightning = null;
+        }
+      } else {
+        state.casting = false;
+        state.staffGlow = 0;
+        state.monster++;  // Increment after death animation
+        updateHUD();
+        setTimeout(nextMonster, 400);
+      }
+    }
+
+    if (state.monsterShake > 0) state.monsterShake -= dt * 3;
+
+    state.particles = state.particles.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.4; p.life -= dt * 2.5;
+      return p.life > 0;
+    });
+
+    state.walkBob += dt * 6;
+
+    // Scale grows with level AND within each level
+    const levelScale = 1 + (state.level - 1) * 0.1 + (state.monster / MONSTERS_PER_LEVEL) * 0.2;
+    drawMonster(state.monsterX, groundY, state.monster, state.monsterAlive, state.monsterShake, state.monsterBob, levelScale);
+    drawLightning(state.lightning);
+    drawWizard(state.wizardX, groundY, state.walkBob, state.casting, state.staffGlow);
+    drawFireball(state.fireball);
+    drawParticles();
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+buildLevelSelect();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

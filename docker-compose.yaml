@@ -1,0 +1,16 @@
+services:
+  learn:
+    build: .
+    container_name: learn
+    restart: unless-stopped
+    volumes:
+      - learn-data:/app/data
+    networks:
+      - traefik-proxy
+
+volumes:
+  learn-data:
+
+networks:
+  traefik-proxy:
+    external: true

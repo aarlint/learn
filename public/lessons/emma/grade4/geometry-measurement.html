@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Geometry & Measurement - 4th Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #ec4899;
+  --pink-light: #fdf2f8;
+  --purple: #a48bdb;
+  --mint: #2DD4A8;
+  --mint-light: #ECFDF5;
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --sky: #3fc1f0;
+  --sun: #FFD93D;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #1E293B;
+  --text-mid: #475569;
+  --border: #E2E8F0;
+  --shadow: 0 8px 30px rgba(0,0,0,0.06);
+  --radius: 20px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
+.app { max-width: 500px; margin: 0 auto; padding-bottom: 100px; }
+.header { text-align: center; padding: 16px 0; }
+.header h1 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; background: linear-gradient(135deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: var(--text-mid); font-size: 0.9rem; }
+
+.progress-bar { height: 8px; background: var(--border); border-radius: 10px; margin: 16px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--pink), var(--purple)); transition: width 0.5s ease; }
+
+.score-row { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
+.score-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-weight: 700; font-size: 0.95rem; }
+
+.card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card h2 { font-family: 'Baloo 2', cursive; font-size: 1.2rem; margin-bottom: 8px; color: var(--pink); }
+.card p { color: var(--text-mid); margin-bottom: 12px; font-size: 0.95rem; }
+
+.problem-area { background: var(--pink-light); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 16px; }
+
+.canvas-wrap { display: flex; justify-content: center; margin: 16px 0; }
+canvas { background: white; border-radius: 12px; border: 2px solid var(--border); }
+
+.shape-info { font-family: 'Baloo 2', cursive; font-size: 1.2rem; margin: 12px 0; }
+
+.choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.choice-btn { padding: 16px; background: white; border: 2px solid var(--border); border-radius: 14px; font-family: 'Baloo 2', cursive; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.choice-btn:active { transform: scale(0.96); }
+.choice-btn.correct { background: var(--mint-light); border-color: var(--mint); color: #059669; }
+.choice-btn.wrong { background: var(--coral-light); border-color: var(--coral); color: var(--coral); }
+
+.input-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+.answer-input { width: 100px; padding: 14px; font-size: 1.4rem; font-family: 'Baloo 2', cursive; text-align: center; border: 2px solid var(--border); border-radius: 12px; }
+.answer-input:focus { outline: none; border-color: var(--pink); }
+.unit { font-family: 'Baloo 2', cursive; font-size: 1.2rem; align-self: center; }
+
+.btn { padding: 14px 32px; font-family: 'Baloo 2', cursive; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; }
+.btn-primary { background: var(--pink); color: white; }
+.btn-primary:active { transform: scale(0.96); }
+
+.feedback { padding: 16px; border-radius: 14px; text-align: center; margin-top: 16px; font-weight: 700; }
+.feedback.correct { background: var(--mint-light); color: #059669; }
+.feedback.wrong { background: var(--coral-light); color: var(--coral); }
+
+.topic-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+.topic-tab { padding: 8px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-family: 'Baloo 2', cursive; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.topic-tab.active { background: var(--pink); color: white; border-color: var(--pink); }
+
+.tip-box { background: var(--sun); color: #92400e; padding: 12px 16px; border-radius: 12px; font-size: 0.9rem; margin-top: 12px; }
+.tip-box strong { display: block; margin-bottom: 4px; }
+
+.formula-box { background: white; border: 2px dashed var(--pink); border-radius: 12px; padding: 12px; margin: 12px 0; font-family: 'Baloo 2', cursive; font-size: 1.1rem; }
+
+.hidden { display: none !important; }
+.complete-screen { text-align: center; padding: 40px 20px; }
+.complete-screen .icon { font-size: 4rem; margin-bottom: 16px; }
+.complete-screen h2 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; color: var(--pink); }
+.complete-screen p { color: var(--text-mid); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>📐 Geometry & Measurement</h1>
+    <p>4th Grade • Angles, Area & Perimeter</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-item">⭐ <span id="stars">0</span></div>
+    <div class="score-item">🔥 <span id="streak">0</span></div>
+  </div>
+
+  <div class="topic-tabs" id="topicTabs">
+    <button class="topic-tab active" data-topic="angles">Angles</button>
+    <button class="topic-tab" data-topic="perimeter">Perimeter</button>
+    <button class="topic-tab" data-topic="area">Area</button>
+    <button class="topic-tab" data-topic="symmetry">Symmetry</button>
+  </div>
+
+  <div class="card" id="problemCard">
+    <h2 id="problemTitle">Angles</h2>
+    <p id="problemInstructions">What type of angle is this?</p>
+    
+    <div class="problem-area" id="problemArea"></div>
+    <div class="answer-section" id="answerSection"></div>
+    <div class="feedback hidden" id="feedback"></div>
+  </div>
+
+  <div class="card hidden" id="completeCard">
+    <div class="complete-screen">
+      <div class="icon">🎉</div>
+      <h2>Topic Complete!</h2>
+      <p id="completeMsg"></p>
+      <button class="btn btn-primary" onclick="nextTopic()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROBLEMS_PER_TOPIC = 6;
+
+const topics = {
+  angles: { title: 'Angle Types', generate: generateAngleProblem },
+  perimeter: { title: 'Perimeter', generate: generatePerimeterProblem },
+  area: { title: 'Area', generate: generateAreaProblem },
+  symmetry: { title: 'Lines of Symmetry', generate: generateSymmetryProblem },
+};
+
+let state = { topic: 'angles', problem: null, problemNum: 0, stars: 0, streak: 0, answered: false };
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function generateAngleProblem() {
+  const types = [
+    { name: 'Acute', range: [15, 85] },
+    { name: 'Right', range: [90, 90] },
+    { name: 'Obtuse', range: [95, 170] },
+  ];
+  const type = types[randInt(0, 2)];
+  const angle = type.range[0] === type.range[1] ? 90 : randInt(type.range[0], type.range[1]);
+  
+  const choices = ['Acute', 'Right', 'Obtuse'];
+  
+  return {
+    type: 'angles',
+    angle,
+    typeName: type.name,
+    answer: choices.indexOf(type.name),
+    choices,
+    instructions: `What type of angle is this? (${angle}°)`,
+    tip: 'Acute < 90°, Right = 90°, Obtuse > 90°',
+  };
+}
+
+function generatePerimeterProblem() {
+  const shapes = [
+    { name: 'rectangle', w: randInt(3, 10), h: randInt(2, 8) },
+    { name: 'square', s: randInt(3, 12) },
+    { name: 'triangle', a: randInt(3, 8), b: randInt(3, 8), c: randInt(3, 8) },
+  ];
+  const shape = shapes[randInt(0, 2)];
+  
+  let perimeter, formula;
+  if (shape.name === 'rectangle') {
+    perimeter = 2 * (shape.w + shape.h);
+    formula = `2 × (${shape.w} + ${shape.h}) = ${perimeter}`;
+  } else if (shape.name === 'square') {
+    perimeter = 4 * shape.s;
+    formula = `4 × ${shape.s} = ${perimeter}`;
+  } else {
+    perimeter = shape.a + shape.b + shape.c;
+    formula = `${shape.a} + ${shape.b} + ${shape.c} = ${perimeter}`;
+  }
+  
+  const choices = [perimeter];
+  while (choices.length < 4) {
+    const wrong = perimeter + randInt(-10, 10);
+    if (wrong > 0 && !choices.includes(wrong)) choices.push(wrong);
+  }
+  choices.sort(() => Math.random() - 0.5);
+  
+  return {
+    type: 'perimeter',
+    shape,
+    perimeter,
+    formula,
+    answer: choices.indexOf(perimeter),
+    choices,
+    instructions: 'Find the perimeter',
+    tip: 'Perimeter = sum of all sides',
+  };
+}
+
+function generateAreaProblem() {
+  const shapes = [
+    { name: 'rectangle', w: randInt(2, 10), h: randInt(2, 8) },
+    { name: 'square', s: randInt(2, 10) },
+  ];
+  const shape = shapes[randInt(0, 1)];
+  
+  let area, formula;
+  if (shape.name === 'rectangle') {
+    area = shape.w * shape.h;
+    formula = `${shape.w} × ${shape.h} = ${area}`;
+  } else {
+    area = shape.s * shape.s;
+    formula = `${shape.s} × ${shape.s} = ${area}`;
+  }
+  
+  const choices = [area];
+  while (choices.length < 4) {
+    const wrong = area + randInt(-15, 15);
+    if (wrong > 0 && !choices.includes(wrong)) choices.push(wrong);
+  }
+  choices.sort(() => Math.random() - 0.5);
+  
+  return {
+    type: 'area',
+    shape,
+    area,
+    formula,
+    answer: choices.indexOf(area),
+    choices,
+    instructions: 'Find the area',
+    tip: 'Area = length × width (for rectangles & squares)',
+  };
+}
+
+function generateSymmetryProblem() {
+  const shapes = [
+    { name: 'Square', lines: 4 },
+    { name: 'Rectangle', lines: 2 },
+    { name: 'Circle', lines: '∞' },
+    { name: 'Equilateral Triangle', lines: 3 },
+    { name: 'Isosceles Triangle', lines: 1 },
+    { name: 'Regular Hexagon', lines: 6 },
+  ];
+  const shape = shapes[randInt(0, shapes.length - 1)];
+  
+  const choices = ['0', '1', '2', '3', '4', '6', '∞'];
+  
+  return {
+    type: 'symmetry',
+    shape,
+    answer: choices.indexOf(String(shape.lines)),
+    choices: choices.filter(c => ['0', '1', '2', '3', '4', '∞'].includes(c) || c === String(shape.lines)),
+    instructions: `How many lines of symmetry does a ${shape.name.toLowerCase()} have?`,
+    tip: 'A line of symmetry divides a shape into two identical halves',
+  };
+}
+
+function drawAngle(canvas, angle) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  const cx = w * 0.3, cy = h * 0.7;
+  const len = w * 0.5;
+  
+  // Draw rays
+  ctx.strokeStyle = '#ec4899';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + len, cy);
+  ctx.stroke();
+  
+  const radians = angle * Math.PI / 180;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(-radians) * len, cy + Math.sin(-radians) * len);
+  ctx.stroke();
+  
+  // Draw arc
+  ctx.strokeStyle = '#a48bdb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, 0, -radians, true);
+  ctx.stroke();
+  
+  // Right angle indicator
+  if (angle === 90) {
+    ctx.strokeStyle = '#a48bdb';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx, cy - 20, 20, 20);
+  }
+}
+
+function drawShape(canvas, shape) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  ctx.strokeStyle = '#ec4899';
+  ctx.fillStyle = '#fdf2f8';
+  ctx.lineWidth = 3;
+  
+  const scale = 15;
+  const cx = w / 2, cy = h / 2;
+  
+  if (shape.name === 'rectangle') {
+    const rw = shape.w * scale, rh = shape.h * scale;
+    ctx.fillRect(cx - rw/2, cy - rh/2, rw, rh);
+    ctx.strokeRect(cx - rw/2, cy - rh/2, rw, rh);
+    
+    // Labels
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 14px Nunito';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${shape.w}`, cx, cy - rh/2 - 8);
+    ctx.fillText(`${shape.h}`, cx + rw/2 + 15, cy);
+  }
+  else if (shape.name === 'square') {
+    const ss = shape.s * scale;
+    ctx.fillRect(cx - ss/2, cy - ss/2, ss, ss);
+    ctx.strokeRect(cx - ss/2, cy - ss/2, ss, ss);
+    
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 14px Nunito';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${shape.s}`, cx, cy - ss/2 - 8);
+  }
+  else if (shape.name === 'triangle') {
+    const { a, b, c } = shape;
+    // Draw a scalene-ish triangle
+    ctx.beginPath();
+    ctx.moveTo(cx - 50, cy + 40);
+    ctx.lineTo(cx + 50, cy + 40);
+    ctx.lineTo(cx + 20, cy - 40);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 12px Nunito';
+    ctx.fillText(a, cx - 30, cy + 60);
+    ctx.fillText(b, cx + 50, cy);
+    ctx.fillText(c, cx - 20, cy - 10);
+  }
+}
+
+function drawSymmetryShape(canvas, shapeName) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  ctx.strokeStyle = '#ec4899';
+  ctx.fillStyle = '#fdf2f8';
+  ctx.lineWidth = 3;
+  
+  const cx = w / 2, cy = h / 2;
+  
+  if (shapeName === 'Square') {
+    ctx.fillRect(cx - 50, cy - 50, 100, 100);
+    ctx.strokeRect(cx - 50, cy - 50, 100, 100);
+  }
+  else if (shapeName === 'Rectangle') {
+    ctx.fillRect(cx - 70, cy - 40, 140, 80);
+    ctx.strokeRect(cx - 70, cy - 40, 140, 80);
+  }
+  else if (shapeName === 'Circle') {
+    ctx.beginPath();
+    ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+  else if (shapeName === 'Equilateral Triangle') {
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const angle = (i * 120 - 90) * Math.PI / 180;
+      const x = cx + Math.cos(angle) * 55;
+      const y = cy + Math.sin(angle) * 55;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  else if (shapeName === 'Isosceles Triangle') {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 55);
+    ctx.lineTo(cx - 45, cy + 45);
+    ctx.lineTo(cx + 45, cy + 45);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  else if (shapeName === 'Regular Hexagon') {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * 60) * Math.PI / 180;
+      const x = cx + Math.cos(angle) * 50;
+      const y = cy + Math.sin(angle) * 50;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+}
+
+function renderProblem() {
+  const topic = topics[state.topic];
+  state.problem = topic.generate();
+  state.answered = false;
+  
+  document.getElementById('problemTitle').textContent = topic.title;
+  document.getElementById('problemInstructions').textContent = state.problem.instructions;
+  document.getElementById('feedback').classList.add('hidden');
+  
+  const area = document.getElementById('problemArea');
+  const answer = document.getElementById('answerSection');
+  
+  if (state.problem.type === 'angles') {
+    area.innerHTML = '<div class="canvas-wrap"><canvas id="shapeCanvas" width="250" height="180"></canvas></div>';
+    setTimeout(() => drawAngle(document.getElementById('shapeCanvas'), state.problem.angle), 10);
+    
+    answer.innerHTML = `<div class="choices">
+      ${state.problem.choices.map((c, i) => `<button class="choice-btn" onclick="checkChoice(${i})">${c}</button>`).join('')}
+    </div>`;
+  }
+  else if (state.problem.type === 'perimeter' || state.problem.type === 'area') {
+    area.innerHTML = `
+      <div class="canvas-wrap"><canvas id="shapeCanvas" width="250" height="180"></canvas></div>
+      <div class="formula-box">Formula: ${state.problem.type === 'perimeter' ? 'P = sum of sides' : 'A = l × w'}</div>
+    `;
+    setTimeout(() => drawShape(document.getElementById('shapeCanvas'), state.problem.shape), 10);
+    
+    answer.innerHTML = `<div class="choices">
+      ${state.problem.choices.map((c, i) => `<button class="choice-btn" onclick="checkChoice(${i})">${c} ${state.problem.type === 'area' ? 'sq units' : 'units'}</button>`).join('')}
+    </div>`;
+  }
+  else if (state.problem.type === 'symmetry') {
+    area.innerHTML = `
+      <div class="canvas-wrap"><canvas id="shapeCanvas" width="200" height="150"></canvas></div>
+      <div class="shape-info">${state.problem.shape.name}</div>
+    `;
+    setTimeout(() => drawSymmetryShape(document.getElementById('shapeCanvas'), state.problem.shape.name), 10);
+    
+    // Filter to reasonable choices
+    const displayChoices = state.problem.choices.slice(0, 4);
+    answer.innerHTML = `<div class="choices">
+      ${displayChoices.map((c, i) => `<button class="choice-btn" onclick="checkChoice(${i})">${c}</button>`).join('')}
+    </div>`;
+  }
+}
+
+function checkChoice(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  
+  const btns = document.querySelectorAll('.choice-btn');
+  const correct = idx === state.problem.answer;
+  
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct && state.problem.answer < btns.length) {
+    btns[state.problem.answer].classList.add('correct');
+  }
+  
+  showFeedback(correct);
+}
+
+function showFeedback(correct) {
+  const fb = document.getElementById('feedback');
+  
+  if (correct) {
+    state.stars++;
+    state.streak++;
+    fb.textContent = '✓ Correct! ' + ['Great!', 'Perfect!', 'Awesome!'][randInt(0, 2)];
+    fb.className = 'feedback correct';
+  } else {
+    state.streak = 0;
+    let tipHtml = `<div class="tip-box"><strong>💡 Tip:</strong> ${state.problem.tip}`;
+    if (state.problem.formula) tipHtml += `<br><br>${state.problem.formula}`;
+    tipHtml += '</div>';
+    fb.innerHTML = '✗ Not quite.' + tipHtml;
+    fb.className = 'feedback wrong';
+  }
+  
+  fb.classList.remove('hidden');
+  updateUI();
+  
+  setTimeout(() => {
+    state.problemNum++;
+    if (state.problemNum >= PROBLEMS_PER_TOPIC) showComplete();
+    else renderProblem();
+  }, correct ? 1200 : 2500);
+}
+
+function updateUI() {
+  document.getElementById('stars').textContent = state.stars;
+  document.getElementById('streak').textContent = state.streak;
+  document.getElementById('progressFill').style.width = ((state.problemNum + 1) / PROBLEMS_PER_TOPIC * 100) + '%';
+}
+
+function showComplete() {
+  document.getElementById('problemCard').classList.add('hidden');
+  document.getElementById('completeCard').classList.remove('hidden');
+  document.getElementById('completeMsg').textContent = `You earned ${state.stars} stars in ${topics[state.topic].title}!`;
+}
+
+function nextTopic() {
+  const keys = Object.keys(topics);
+  const idx = keys.indexOf(state.topic);
+  if (idx < keys.length - 1) setTopic(keys[idx + 1]);
+  else {
+    document.getElementById('completeCard').querySelector('.complete-screen').innerHTML = `
+      <div class="icon">🏆</div><h2>All Complete!</h2>
+      <p>Geometry master! Stars: ${state.stars}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Play Again</button>
+    `;
+  }
+}
+
+function setTopic(topic) {
+  state.topic = topic;
+  state.problemNum = 0;
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.toggle('active', t.dataset.topic === topic));
+  document.getElementById('problemCard').classList.remove('hidden');
+  document.getElementById('completeCard').classList.add('hidden');
+  renderProblem();
+  updateUI();
+}
+
+document.querySelectorAll('.topic-tab').forEach(t => t.addEventListener('click', () => setTopic(t.dataset.topic)));
+renderProblem();
+updateUI();
+</script>
+</body>
+</html>

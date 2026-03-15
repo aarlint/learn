@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Earth & Space Science - 4th Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --purple: #8b5cf6;
+  --purple-light: #f5f3ff;
+  --mint: #2DD4A8;
+  --mint-light: #ECFDF5;
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --sky: #3fc1f0;
+  --sun: #FFD93D;
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f1f5f9;
+  --text-mid: #94a3b8;
+  --border: #334155;
+  --shadow: 0 8px 30px rgba(0,0,0,0.3);
+  --radius: 20px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
+.app { max-width: 500px; margin: 0 auto; padding-bottom: 100px; }
+.header { text-align: center; padding: 16px 0; }
+.header h1 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; background: linear-gradient(135deg, var(--purple), var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: var(--text-mid); font-size: 0.9rem; }
+
+/* Stars background */
+.stars { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: -1; }
+.star { position: absolute; background: white; border-radius: 50%; animation: twinkle 2s infinite; }
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.progress-bar { height: 8px; background: var(--border); border-radius: 10px; margin: 16px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--sky)); transition: width 0.5s ease; }
+
+.score-row { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
+.score-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-weight: 700; font-size: 0.95rem; }
+
+.card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card h2 { font-family: 'Baloo 2', cursive; font-size: 1.2rem; margin-bottom: 8px; color: var(--purple); }
+.card p { color: var(--text-mid); margin-bottom: 12px; font-size: 0.95rem; }
+
+.problem-area { background: rgba(139, 92, 246, 0.1); border: 1px solid var(--purple); border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
+.question-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 16px; }
+
+.planet-display { font-size: 4rem; margin: 16px 0; }
+.fact-box { background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 14px; margin: 12px 0; text-align: left; font-size: 0.95rem; line-height: 1.6; }
+
+.choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.choices.single { grid-template-columns: 1fr; }
+.choice-btn { padding: 14px; background: rgba(255,255,255,0.05); border: 2px solid var(--border); border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; color: var(--text); cursor: pointer; transition: all 0.2s; }
+.choice-btn:active { transform: scale(0.98); }
+.choice-btn.correct { background: rgba(45, 212, 168, 0.2); border-color: var(--mint); color: var(--mint); }
+.choice-btn.wrong { background: rgba(255, 107, 107, 0.2); border-color: var(--coral); color: var(--coral); }
+
+.feedback { padding: 16px; border-radius: 14px; text-align: center; margin-top: 16px; font-weight: 700; }
+.feedback.correct { background: rgba(45, 212, 168, 0.2); color: var(--mint); }
+.feedback.wrong { background: rgba(255, 107, 107, 0.2); color: var(--coral); }
+
+.topic-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+.topic-tab { padding: 8px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-family: 'Baloo 2', cursive; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--text-mid); }
+.topic-tab.active { background: var(--purple); color: white; border-color: var(--purple); }
+
+.tip-box { background: rgba(255, 217, 61, 0.15); color: var(--sun); padding: 12px 16px; border-radius: 12px; font-size: 0.9rem; margin-top: 12px; }
+
+.btn { padding: 14px 32px; font-family: 'Baloo 2', cursive; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; }
+.btn-primary { background: var(--purple); color: white; }
+
+.hidden { display: none !important; }
+.complete-screen { text-align: center; padding: 40px 20px; }
+.complete-screen .icon { font-size: 4rem; margin-bottom: 16px; }
+.complete-screen h2 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; color: var(--purple); }
+.complete-screen p { color: var(--text-mid); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<div class="app">
+  <div class="header">
+    <h1>🌍 Earth & Space Science</h1>
+    <p>4th Grade • Our Planet & Solar System</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-item">⭐ <span id="stars-count">0</span></div>
+    <div class="score-item">🔥 <span id="streak">0</span></div>
+  </div>
+
+  <div class="topic-tabs">
+    <button class="topic-tab active" data-topic="solar">Solar System</button>
+    <button class="topic-tab" data-topic="earth">Earth</button>
+    <button class="topic-tab" data-topic="rocks">Rocks</button>
+    <button class="topic-tab" data-topic="weather">Weather</button>
+  </div>
+
+  <div class="card" id="problemCard">
+    <h2 id="problemTitle">Solar System</h2>
+    <p id="problemInstructions">Test your space knowledge!</p>
+    
+    <div class="problem-area" id="problemArea"></div>
+    <div class="answer-section" id="answerSection"></div>
+    <div class="feedback hidden" id="feedback"></div>
+  </div>
+
+  <div class="card hidden" id="completeCard">
+    <div class="complete-screen">
+      <div class="icon">🚀</div>
+      <h2>Topic Complete!</h2>
+      <p id="completeMsg"></p>
+      <button class="btn btn-primary" onclick="nextTopic()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Create starry background
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 50; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+  star.style.left = Math.random() * 100 + '%';
+  star.style.top = Math.random() * 100 + '%';
+  star.style.animationDelay = Math.random() * 2 + 's';
+  starsEl.appendChild(star);
+}
+
+const PROBLEMS_PER_TOPIC = 6;
+
+const solarProblems = [
+  { q: 'Which planet is closest to the Sun?', emoji: '☀️', choices: ['Venus', 'Mercury', 'Mars', 'Earth'], answer: 1, tip: 'Mercury is the smallest planet and closest to the Sun.' },
+  { q: 'Which planet is known as the "Red Planet"?', emoji: '🔴', choices: ['Jupiter', 'Venus', 'Mars', 'Saturn'], answer: 2, tip: 'Mars looks red because of iron oxide (rust) on its surface.' },
+  { q: 'How many planets are in our solar system?', emoji: '🪐', choices: ['7', '8', '9', '10'], answer: 1, tip: 'There are 8 planets: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune.' },
+  { q: 'Which is the LARGEST planet?', emoji: '🌟', choices: ['Saturn', 'Neptune', 'Jupiter', 'Uranus'], answer: 2, tip: 'Jupiter is so big that over 1,000 Earths could fit inside it!' },
+  { q: 'What does Earth orbit around?', emoji: '🌍', choices: ['The Moon', 'The Sun', 'Mars', 'Jupiter'], answer: 1, tip: 'Earth takes about 365 days to orbit the Sun once.' },
+  { q: 'Which planet has the famous rings?', emoji: '💫', choices: ['Mars', 'Jupiter', 'Saturn', 'Venus'], answer: 2, tip: 'Saturn\'s rings are made of ice and rock.' },
+  { q: 'What is the Sun?', emoji: '☀️', choices: ['A planet', 'A moon', 'A star', 'An asteroid'], answer: 2, tip: 'The Sun is a star - a giant ball of hot, glowing gas.' },
+  { q: 'Which planet do we live on?', emoji: '🏠', choices: ['Mars', 'Venus', 'Earth', 'Mercury'], answer: 2, tip: 'Earth is the only planet known to support life!' },
+];
+
+const earthProblems = [
+  { q: 'What causes day and night?', choices: ['Earth orbiting the Sun', 'Earth rotating on its axis', 'The Moon blocking the Sun', 'Clouds'], answer: 1, tip: 'Earth spins (rotates) once every 24 hours, giving us day and night.' },
+  { q: 'What causes the seasons?', choices: ['Distance from the Sun', 'Earth\'s tilted axis', 'The Moon\'s phases', 'Ocean currents'], answer: 1, tip: 'Earth is tilted at 23.5 degrees, causing different parts to receive more sunlight at different times.' },
+  { q: 'How long does it take Earth to orbit the Sun?', choices: ['24 hours', '7 days', '30 days', '365 days'], answer: 3, tip: 'One full orbit around the Sun = one year.' },
+  { q: 'What are the layers of Earth (surface to center)?', choices: ['Core, mantle, crust', 'Crust, mantle, core', 'Mantle, crust, core', 'Crust, core, mantle'], answer: 1, tip: 'Crust (outside), Mantle (middle), Core (center).' },
+  { q: 'What percentage of Earth is covered by water?', choices: ['About 50%', 'About 70%', 'About 30%', 'About 90%'], answer: 1, tip: 'About 70% of Earth\'s surface is covered by oceans.' },
+  { q: 'What layer of atmosphere protects us from harmful rays?', choices: ['Troposphere', 'Stratosphere (ozone)', 'Mesosphere', 'Thermosphere'], answer: 1, tip: 'The ozone layer in the stratosphere absorbs harmful UV rays.' },
+];
+
+const rockProblems = [
+  { q: 'Which type of rock forms from cooled lava or magma?', choices: ['Sedimentary', 'Metamorphic', 'Igneous', 'Limestone'], answer: 2, tip: 'Igneous rocks form when hot molten rock cools and hardens.' },
+  { q: 'Which rock type forms in layers over time?', choices: ['Igneous', 'Sedimentary', 'Metamorphic', 'Granite'], answer: 1, tip: 'Sedimentary rocks form from particles that settle in layers.' },
+  { q: 'What turns rock into metamorphic rock?', choices: ['Water', 'Heat and pressure', 'Freezing', 'Wind'], answer: 1, tip: 'Metamorphic means "changed form" - heat and pressure transform rocks.' },
+  { q: 'Fossils are most commonly found in which rock type?', choices: ['Igneous', 'Metamorphic', 'Sedimentary', 'Volcanic'], answer: 2, tip: 'Sedimentary rocks form in layers that can trap and preserve fossils.' },
+  { q: 'What is the hardest natural mineral?', choices: ['Quartz', 'Gold', 'Diamond', 'Ruby'], answer: 2, tip: 'Diamond is rated 10 on the Mohs hardness scale.' },
+  { q: 'What process breaks down rocks into smaller pieces?', choices: ['Erosion', 'Weathering', 'Melting', 'Compression'], answer: 1, tip: 'Weathering breaks down rocks; erosion moves the pieces.' },
+];
+
+const weatherProblems = [
+  { q: 'What instrument measures temperature?', choices: ['Barometer', 'Thermometer', 'Anemometer', 'Rain gauge'], answer: 1, tip: 'Thermometer measures how hot or cold something is.' },
+  { q: 'What does a barometer measure?', choices: ['Temperature', 'Wind speed', 'Air pressure', 'Humidity'], answer: 2, tip: 'Changes in air pressure help predict weather changes.' },
+  { q: 'What type of cloud brings thunderstorms?', choices: ['Cirrus', 'Stratus', 'Cumulus', 'Cumulonimbus'], answer: 3, tip: 'Cumulonimbus clouds are tall, dark thunderstorm clouds.' },
+  { q: 'What causes wind?', choices: ['The Moon', 'Differences in air pressure', 'Ocean waves', 'Mountains'], answer: 1, tip: 'Wind blows from high pressure areas to low pressure areas.' },
+  { q: 'What is the water cycle?', choices: ['Water flowing downhill', 'Water moving between land, air, and back', 'Waves in the ocean', 'Ice melting'], answer: 1, tip: 'Evaporation → Condensation → Precipitation → Collection → Repeat!' },
+  { q: 'Wispy, thin clouds high in the sky are called:', choices: ['Stratus', 'Cumulus', 'Cirrus', 'Nimbus'], answer: 2, tip: 'Cirrus clouds are made of ice crystals high in the atmosphere.' },
+];
+
+const topics = {
+  solar: { title: 'Solar System', problems: solarProblems },
+  earth: { title: 'Planet Earth', problems: earthProblems },
+  rocks: { title: 'Rocks & Minerals', problems: rockProblems },
+  weather: { title: 'Weather', problems: weatherProblems },
+};
+
+let state = { topic: 'solar', problemNum: 0, stars: 0, streak: 0, answered: false, usedProblems: [] };
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function getRandomProblem() {
+  const topic = topics[state.topic];
+  const available = topic.problems.filter((_, i) => !state.usedProblems.includes(i));
+  if (available.length === 0) {
+    state.usedProblems = [];
+    return topic.problems[randInt(0, topic.problems.length - 1)];
+  }
+  const idx = randInt(0, available.length - 1);
+  const originalIdx = topic.problems.indexOf(available[idx]);
+  state.usedProblems.push(originalIdx);
+  return available[idx];
+}
+
+function renderProblem() {
+  const problem = getRandomProblem();
+  state.currentProblem = problem;
+  state.answered = false;
+  
+  document.getElementById('problemTitle').textContent = topics[state.topic].title;
+  document.getElementById('feedback').classList.add('hidden');
+  
+  let areaContent = '';
+  if (problem.emoji) {
+    areaContent = `<div class="planet-display">${problem.emoji}</div>`;
+  }
+  areaContent += `<div class="question-text">${problem.q}</div>`;
+  
+  document.getElementById('problemArea').innerHTML = areaContent;
+  document.getElementById('answerSection').innerHTML = `
+    <div class="choices">
+      ${problem.choices.map((c, i) => `<button class="choice-btn" onclick="checkChoice(${i})">${c}</button>`).join('')}
+    </div>
+  `;
+  
+  updateUI();
+}
+
+function checkChoice(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  
+  const correct = idx === state.currentProblem.answer;
+  const btns = document.querySelectorAll('.choice-btn');
+  
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[state.currentProblem.answer].classList.add('correct');
+  
+  const fb = document.getElementById('feedback');
+  if (correct) {
+    state.stars++;
+    state.streak++;
+    fb.textContent = '✓ Correct! ' + ['Great!', 'Amazing!', 'You\'re a star! ⭐'][randInt(0, 2)];
+    fb.className = 'feedback correct';
+  } else {
+    state.streak = 0;
+    fb.innerHTML = `✗ Not quite.<div class="tip-box">💡 ${state.currentProblem.tip}</div>`;
+    fb.className = 'feedback wrong';
+  }
+  
+  fb.classList.remove('hidden');
+  updateUI();
+  
+  setTimeout(() => {
+    state.problemNum++;
+    if (state.problemNum >= PROBLEMS_PER_TOPIC) showComplete();
+    else renderProblem();
+  }, correct ? 1500 : 2800);
+}
+
+function updateUI() {
+  document.getElementById('stars-count').textContent = state.stars;
+  document.getElementById('streak').textContent = state.streak;
+  document.getElementById('progressFill').style.width = ((state.problemNum + 1) / PROBLEMS_PER_TOPIC * 100) + '%';
+}
+
+function showComplete() {
+  document.getElementById('problemCard').classList.add('hidden');
+  document.getElementById('completeCard').classList.remove('hidden');
+  document.getElementById('completeMsg').textContent = `You earned ${state.stars} stars in ${topics[state.topic].title}!`;
+}
+
+function nextTopic() {
+  const keys = Object.keys(topics);
+  const idx = keys.indexOf(state.topic);
+  if (idx < keys.length - 1) setTopic(keys[idx + 1]);
+  else {
+    document.getElementById('completeCard').querySelector('.complete-screen').innerHTML = `
+      <div class="icon">🚀</div><h2>Space Explorer!</h2>
+      <p>Total stars: ${state.stars}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Explore Again</button>
+    `;
+  }
+}
+
+function setTopic(topic) {
+  state.topic = topic;
+  state.problemNum = 0;
+  state.usedProblems = [];
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.toggle('active', t.dataset.topic === topic));
+  document.getElementById('problemCard').classList.remove('hidden');
+  document.getElementById('completeCard').classList.add('hidden');
+  renderProblem();
+  updateUI();
+}
+
+document.querySelectorAll('.topic-tab').forEach(t => t.addEventListener('click', () => setTopic(t.dataset.topic)));
+renderProblem();
+</script>
+</body>
+</html>

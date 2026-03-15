@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Angle Ace 📐</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HUD */
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.stat-icon { font-size: 1.2rem; }
+
+.level-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  color: white;
+  font-size: 0.85rem;
+}
+
+/* Question */
+.question-area {
+  text-align: center;
+  padding: 16px 20px;
+  background: rgba(0,0,0,0.15);
+}
+
+.question-text {
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+/* Angle display */
+.angle-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+canvas {
+  display: block;
+}
+
+/* Hint bubble */
+.hint-bubble {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.9rem;
+  max-width: 90%;
+  text-align: center;
+}
+
+.hint-bubble .highlight {
+  color: #fcd34d;
+  font-weight: 700;
+}
+
+/* Answer buttons */
+.answer-area {
+  padding: 20px;
+  background: rgba(0,0,0,0.2);
+}
+
+.answer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.answer-btn {
+  background: rgba(255,255,255,0.15);
+  border: 3px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 16px 12px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.answer-btn:active {
+  transform: scale(0.95);
+}
+
+.answer-btn .icon {
+  font-size: 1.8rem;
+}
+
+.answer-btn .label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.answer-btn.correct {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.answer-btn.wrong {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.answer-btn.highlight-correct {
+  border-color: #fcd34d;
+  box-shadow: 0 0 20px rgba(252, 211, 77, 0.5);
+}
+
+/* Streak indicator */
+.streak-area {
+  text-align: center;
+  padding: 8px;
+  background: rgba(0,0,0,0.15);
+}
+
+.streak-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.streak-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: all 0.3s;
+}
+
+.streak-dot.filled {
+  background: #fcd34d;
+  box-shadow: 0 0 10px rgba(252, 211, 77, 0.5);
+}
+
+/* Feedback */
+.feedback {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: 800;
+  z-index: 50;
+  pointer-events: none;
+  animation: popFeedback 0.7s ease-out forwards;
+}
+
+.feedback.correct { color: #22c55e; text-shadow: 0 4px 20px rgba(34,197,94,0.5); }
+.feedback.wrong { color: #ef4444; text-shadow: 0 4px 20px rgba(239,68,68,0.5); }
+.feedback.bonus { color: #fcd34d; font-size: 2rem; text-shadow: 0 4px 20px rgba(252,211,77,0.5); }
+
+@keyframes popFeedback {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-30px); }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 24px;
+  padding: 32px 40px;
+  text-align: center;
+  color: white;
+  max-width: 90%;
+  width: 360px;
+}
+
+.modal h2 { font-size: 1.8rem; margin-bottom: 8px; }
+.modal .stars { font-size: 2.5rem; margin: 16px 0; }
+.modal p { opacity: 0.8; margin-bottom: 20px; }
+
+.modal button {
+  background: white;
+  color: #0f766e;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal button:active { transform: scale(0.95); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="hud">
+    <div class="stat">
+      <span class="stat-icon">⭐</span>
+      <span id="score">0</span>
+    </div>
+    <div class="level-badge">Level <span id="level">1</span></div>
+    <div class="stat">
+      <span class="stat-icon">❤️</span>
+      <span id="lives">3</span>
+    </div>
+  </div>
+  
+  <div class="question-area">
+    <div class="question-text">What type of angle is this?</div>
+  </div>
+  
+  <div class="angle-area">
+    <canvas id="angleCanvas"></canvas>
+    <div class="hint-bubble" id="hint">
+      <span class="highlight">Acute</span> = less than 90° &nbsp;|&nbsp; 
+      <span class="highlight">Right</span> = exactly 90° &nbsp;|&nbsp; 
+      <span class="highlight">Obtuse</span> = more than 90°
+    </div>
+  </div>
+  
+  <div class="streak-area">
+    <div class="streak-dots" id="streakDots">
+      <div class="streak-dot"></div>
+      <div class="streak-dot"></div>
+      <div class="streak-dot"></div>
+      <div class="streak-dot"></div>
+      <div class="streak-dot"></div>
+    </div>
+  </div>
+  
+  <div class="answer-area">
+    <div class="answer-grid">
+      <button class="answer-btn" data-type="acute">
+        <span class="icon">📐</span>
+        <span>Acute</span>
+        <span class="label">&lt; 90°</span>
+      </button>
+      <button class="answer-btn" data-type="right">
+        <span class="icon">⊾</span>
+        <span>Right</span>
+        <span class="label">= 90°</span>
+      </button>
+      <button class="answer-btn" data-type="obtuse">
+        <span class="icon">📏</span>
+        <span>Obtuse</span>
+        <span class="label">&gt; 90°</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="feedback" class="feedback hidden"></div>
+
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="modalTitle">Level Complete!</h2>
+    <div class="stars" id="modalStars">⭐⭐⭐</div>
+    <p id="modalText">Great job!</p>
+    <button id="nextBtn">Continue</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('angleCanvas');
+const ctx = canvas.getContext('2d');
+
+// Game state
+let score = 0;
+let lives = 3;
+let level = 1;
+let streak = 0;
+let questionsInLevel = 0;
+let correctInLevel = 0;
+const QUESTIONS_PER_LEVEL = 8;
+
+// Current angle
+let currentAngle = 45; // degrees
+let currentType = 'acute';
+let answered = false;
+
+// Difficulty settings per level
+const levelConfig = {
+  1: { // Easy - clear angles
+    acute: [20, 30, 40, 50, 60],
+    right: [90],
+    obtuse: [100, 110, 120, 130, 140, 150]
+  },
+  2: { // Medium - angles closer to 90
+    acute: [30, 45, 55, 65, 75, 80],
+    right: [90],
+    obtuse: [95, 100, 110, 125, 135]
+  },
+  3: { // Hard - tricky angles near 90
+    acute: [70, 75, 78, 82, 85, 88],
+    right: [90],
+    obtuse: [92, 95, 98, 102, 105, 110]
+  },
+  4: { // Expert - very close to boundaries
+    acute: [80, 82, 84, 86, 88, 89],
+    right: [90],
+    obtuse: [91, 92, 94, 96, 98, 100]
+  }
+};
+
+// Canvas sizing
+function resize() {
+  const container = canvas.parentElement;
+  const size = Math.min(container.clientWidth - 40, container.clientHeight - 100, 350);
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawAngle();
+}
+
+window.addEventListener('resize', resize);
+
+// Generate a new angle
+function generateAngle() {
+  const config = levelConfig[Math.min(level, 4)];
+  
+  // Pick type (weighted to be fair)
+  const types = ['acute', 'acute', 'right', 'obtuse', 'obtuse'];
+  currentType = types[Math.floor(Math.random() * types.length)];
+  
+  // Pick angle from that type
+  const angles = config[currentType];
+  currentAngle = angles[Math.floor(Math.random() * angles.length)];
+  
+  // Add small random variation for non-right angles
+  if (currentType !== 'right') {
+    currentAngle += (Math.random() - 0.5) * 4;
+    currentAngle = Math.round(currentAngle);
+    
+    // Ensure it stays in correct category
+    if (currentType === 'acute' && currentAngle >= 90) currentAngle = 89;
+    if (currentType === 'obtuse' && currentAngle <= 90) currentAngle = 91;
+    if (currentAngle < 10) currentAngle = 15;
+    if (currentAngle > 170) currentAngle = 165;
+  }
+  
+  answered = false;
+  clearButtonStates();
+  drawAngle();
+}
+
+// Draw the angle
+function drawAngle() {
+  const size = canvas.width / window.devicePixelRatio;
+  ctx.clearRect(0, 0, size, size);
+  
+  const cx = size / 2;
+  const cy = size / 2 + 20;
+  const armLength = size * 0.38;
+  
+  // Convert angle to radians
+  const angleRad = currentAngle * Math.PI / 180;
+  
+  // Draw arc showing the angle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, -angleRad, 0);
+  ctx.strokeStyle = 'rgba(252, 211, 77, 0.6)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  
+  // Fill arc
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, 40, -angleRad, 0);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(252, 211, 77, 0.2)';
+  ctx.fill();
+  
+  // Right angle square indicator
+  if (currentAngle === 90) {
+    ctx.strokeStyle = 'rgba(252, 211, 77, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx, cy - 25, 25, 25);
+  }
+  
+  // Draw arms
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  
+  // Horizontal arm (base)
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + armLength, cy);
+  ctx.stroke();
+  
+  // Angled arm
+  const endX = cx + Math.cos(-angleRad) * armLength;
+  const endY = cy + Math.sin(-angleRad) * armLength;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+  
+  // Vertex dot
+  ctx.fillStyle = '#fcd34d';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Arrowheads
+  drawArrowhead(cx + armLength, cy, 0);
+  drawArrowhead(endX, endY, -angleRad);
+}
+
+function drawArrowhead(x, y, angle) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-12, -6);
+  ctx.lineTo(-12, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// Clear button states
+function clearButtonStates() {
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    btn.classList.remove('correct', 'wrong', 'highlight-correct');
+  });
+}
+
+// Update streak dots
+function updateStreak() {
+  const dots = document.querySelectorAll('.streak-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('filled', i < streak);
+  });
+}
+
+// Show feedback
+function showFeedback(text, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.className = 'feedback ' + type;
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = '';
+  setTimeout(() => el.classList.add('hidden'), 700);
+}
+
+// Update HUD
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('level').textContent = level;
+}
+
+// Update hint based on level
+function updateHint() {
+  const hint = document.getElementById('hint');
+  if (level >= 3) {
+    hint.innerHTML = 'Look carefully — some angles are tricky!';
+  } else if (level === 2) {
+    hint.innerHTML = '<span class="highlight">Acute</span> &lt; 90° &nbsp;|&nbsp; <span class="highlight">Right</span> = 90° &nbsp;|&nbsp; <span class="highlight">Obtuse</span> &gt; 90°';
+  }
+}
+
+// Handle answer
+function handleAnswer(selectedType) {
+  if (answered) return;
+  answered = true;
+  
+  const buttons = document.querySelectorAll('.answer-btn');
+  const selectedBtn = document.querySelector(`[data-type="${selectedType}"]`);
+  const correctBtn = document.querySelector(`[data-type="${currentType}"]`);
+  
+  if (selectedType === currentType) {
+    // Correct!
+    selectedBtn.classList.add('correct');
+    streak++;
+    correctInLevel++;
+    
+    const basePoints = 100;
+    const streakBonus = streak >= 5 ? 50 : 0;
+    score += basePoints + streakBonus;
+    
+    if (streak >= 5) {
+      showFeedback('🔥 +150!', 'bonus');
+      streak = 0;
+    } else {
+      showFeedback('Correct!', 'correct');
+    }
+  } else {
+    // Wrong
+    selectedBtn.classList.add('wrong');
+    correctBtn.classList.add('highlight-correct');
+    streak = 0;
+    lives--;
+    
+    const typeName = currentType.charAt(0).toUpperCase() + currentType.slice(1);
+    showFeedback(`${typeName} (${currentAngle}°)`, 'wrong');
+    
+    if (lives <= 0) {
+      setTimeout(showGameOver, 1000);
+      updateHUD();
+      updateStreak();
+      return;
+    }
+  }
+  
+  updateHUD();
+  updateStreak();
+  questionsInLevel++;
+  
+  // Check level complete
+  if (questionsInLevel >= QUESTIONS_PER_LEVEL) {
+    setTimeout(showLevelComplete, 1000);
+  } else {
+    setTimeout(generateAngle, 1200);
+  }
+}
+
+// Level complete
+function showLevelComplete() {
+  const accuracy = Math.round((correctInLevel / QUESTIONS_PER_LEVEL) * 100);
+  const stars = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : 1;
+  
+  document.getElementById('modalTitle').textContent = `Level ${level} Complete!`;
+  document.getElementById('modalStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  document.getElementById('modalText').textContent = `Accuracy: ${accuracy}% — Score: ${score}`;
+  document.getElementById('nextBtn').textContent = level >= 4 ? 'Play Again' : 'Next Level';
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+// Game over
+function showGameOver() {
+  document.getElementById('modalTitle').textContent = 'Game Over';
+  document.getElementById('modalStars').textContent = '📐';
+  document.getElementById('modalText').textContent = `Final Score: ${score}`;
+  document.getElementById('nextBtn').textContent = 'Try Again';
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+// Next level / restart
+document.getElementById('nextBtn').addEventListener('click', () => {
+  document.getElementById('modal').classList.add('hidden');
+  
+  if (lives <= 0 || level >= 4) {
+    // Restart
+    score = 0;
+    lives = 3;
+    level = 1;
+  } else {
+    // Next level
+    level++;
+    lives = Math.min(lives + 1, 5); // Restore a life
+  }
+  
+  streak = 0;
+  questionsInLevel = 0;
+  correctInLevel = 0;
+  updateHUD();
+  updateStreak();
+  updateHint();
+  generateAngle();
+});
+
+// Button clicks
+document.querySelectorAll('.answer-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    handleAnswer(btn.dataset.type);
+  });
+});
+
+// Init
+resize();
+generateAngle();
+updateHUD();
+updateStreak();
+</script>
+</body>
+</html>

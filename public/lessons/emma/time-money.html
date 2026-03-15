@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time & Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral: #FF6B6B;
+  --sky: #4ECDC4;
+  --mint: #2ECC71;
+  --lilac: #A48BDB;
+  --peach: #FFB07C;
+  --pink: #EC4899;
+  --gold: #F7DC6F;
+  --blue: #3FC1F0;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #2D3436;
+  --text-light: #636E72;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+h1, h2, h3 { font-family: 'Baloo 2', cursive; }
+
+.hero {
+  background: linear-gradient(135deg, var(--pink) 0%, var(--lilac) 100%);
+  padding: 30px 20px 20px;
+  text-align: center;
+  color: white;
+}
+
+.hero h1 { font-size: 2rem; margin-bottom: 4px; }
+.hero p { opacity: 0.9; font-size: 1rem; }
+
+.score-bar {
+  display: flex; justify-content: center; gap: 16px; padding: 12px 20px;
+  background: white; border-bottom: 2px solid #f0ece6; flex-wrap: wrap;
+}
+
+.score-pill {
+  display: flex; align-items: center; gap: 6px; background: #F8F6F2;
+  padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;
+}
+
+.score-pill .emoji { font-size: 1.1rem; }
+.score-pill .val { color: var(--pink); }
+
+.tabs {
+  display: flex; gap: 6px; padding: 16px 20px 0;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+  padding: 10px 20px; border-radius: 12px 12px 0 0; border: none;
+  background: #F0ECE6; font-family: 'Baloo 2', cursive; font-size: 1rem;
+  font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--text-light); transition: all 0.2s;
+}
+
+.tab:hover { background: #E8E3DC; }
+.tab.active { background: white; color: var(--pink); box-shadow: var(--shadow); }
+
+.section { display: none; padding: 20px; max-width: 800px; margin: 0 auto; }
+.section.active { display: block; }
+
+.card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 24px; margin-bottom: 20px; border-left: 5px solid var(--pink);
+}
+
+.card.accent-sky { border-left-color: var(--sky); }
+.card.accent-lilac { border-left-color: var(--lilac); }
+.card.accent-mint { border-left-color: var(--mint); }
+.card.accent-gold { border-left-color: var(--gold); }
+
+.card h2 { font-size: 1.4rem; margin-bottom: 8px; }
+.card p { line-height: 1.6; color: var(--text-light); margin-bottom: 12px; }
+
+.progress-track {
+  width: 100%; height: 12px; background: #F0ECE6; border-radius: 6px;
+  overflow: hidden; margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--pink), var(--lilac));
+  transition: width 0.5s ease;
+}
+
+.quiz-question {
+  font-family: 'Baloo 2', cursive; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);
+}
+
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+}
+
+.option-btn {
+  padding: 14px; border-radius: var(--radius-sm); border: 2px solid #E8E3DC;
+  background: white; font-family: 'Nunito', sans-serif; font-size: 1.05rem;
+  font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: left;
+}
+
+.option-btn:hover { border-color: var(--pink); background: #FFF0F6; transform: translateY(-1px); }
+.option-btn.correct { border-color: var(--mint); background: #E6F9EE; color: #1B7A3D; animation: pop 0.3s; }
+.option-btn.wrong { border-color: var(--coral); background: #FFE8E8; color: #C0392B; animation: shake 0.3s; }
+.option-btn:disabled { cursor: default; opacity: 0.85; }
+.option-btn:disabled:hover { transform: none; }
+
+@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+.feedback {
+  padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 16px;
+  font-weight: 600; display: none;
+}
+
+.feedback.show { display: block; }
+.feedback.correct { background: #E6F9EE; color: #1B7A3D; border-left: 4px solid var(--mint); }
+.feedback.wrong { background: #FFE8E8; color: #C0392B; border-left: 4px solid var(--coral); }
+
+.btn {
+  padding: 12px 28px; border-radius: var(--radius-sm); border: none;
+  font-family: 'Baloo 2', cursive; font-size: 1.05rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+}
+
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.btn-primary { background: linear-gradient(135deg, var(--pink), var(--lilac)); color: white; }
+
+/* Clock */
+.clock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.clock-svg {
+  width: 200px;
+  height: 200px;
+}
+
+.clock-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.clock-controls select {
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  border: 2px solid #E0E0E0; font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 700; background: white; cursor: pointer;
+}
+
+.clock-time {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.5rem;
+  color: var(--pink);
+  margin-top: 8px;
+}
+
+/* Coins */
+.coin-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  justify-content: center;
+}
+
+.coin {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.coin.penny { background: linear-gradient(135deg, #CD7F32, #B87333); width: 48px; height: 48px; font-size: 0.7rem; }
+.coin.nickel { background: linear-gradient(135deg, #A8A8A8, #808080); width: 52px; height: 52px; font-size: 0.75rem; }
+.coin.dime { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); width: 44px; height: 44px; font-size: 0.65rem; }
+.coin.quarter { background: linear-gradient(135deg, #D4D4D4, #B0B0B0); }
+.coin.half { background: linear-gradient(135deg, #E0E0E0, #C0C0C0); width: 68px; height: 68px; }
+
+.bill {
+  width: 100px;
+  height: 44px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(135deg, #2D8C4F, #1E6B3A);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.info-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;
+}
+
+.info-box {
+  padding: 12px; border-radius: var(--radius-sm); background: #F8F6F2;
+  text-align: center;
+}
+
+.info-box .label {
+  font-family: 'Baloo 2', cursive; font-size: 1rem; margin-bottom: 4px;
+}
+
+.info-box .value { font-size: 0.9rem; color: var(--text-light); }
+
+.completion {
+  text-align: center; padding: 40px 20px;
+}
+
+.completion h2 { font-size: 2rem; color: var(--pink); }
+.completion .big-emoji { font-size: 4rem; display: block; margin: 16px 0; }
+.completion p { font-size: 1.1rem; color: var(--text-light); }
+
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.5rem; }
+  .options-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .score-bar { gap: 8px; }
+  .score-pill { padding: 4px 10px; font-size: 0.8rem; }
+  .tabs { padding: 12px 12px 0; }
+  .tab { padding: 8px 14px; font-size: 0.9rem; }
+  .section { padding: 16px; }
+  .clock-svg { width: 160px; height: 160px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🕐 Time & Money</h1>
+  <p>Master clocks, coins, and bills like a pro!</p>
+</div>
+
+<div class="score-bar">
+  <div class="score-pill"><span class="emoji">⭐</span> Stars: <span class="val" id="stars">0</span></div>
+  <div class="score-pill"><span class="emoji">🔥</span> Streak: <span class="val" id="streak">0</span></div>
+  <div class="score-pill"><span class="emoji">🏆</span> Level: <span class="val" id="level">1</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showSection('telling')">🕐 Telling Time</button>
+  <button class="tab" onclick="showSection('elapsed')">⏱️ Elapsed Time</button>
+  <button class="tab" onclick="showSection('counting')">💰 Counting Money</button>
+  <button class="tab" onclick="showSection('change')">🛒 Making Change</button>
+</div>
+
+<!-- TELLING TIME -->
+<div class="section active" id="sec-telling">
+  <div class="card">
+    <h2 style="color:var(--pink)">🕐 Interactive Clock</h2>
+    <p>The <strong>short hand</strong> (hour) points to the hour. The <strong>long hand</strong> (minute) points to the minutes. Each number on the clock is 5 minutes!</p>
+    <div class="clock-container">
+      <svg class="clock-svg" viewBox="0 0 200 200" id="learn-clock">
+        <circle cx="100" cy="100" r="95" fill="#FFFBF0" stroke="#E8E3DC" stroke-width="3"/>
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#F0ECE6" stroke-width="1"/>
+      </svg>
+      <div class="clock-controls">
+        <label style="font-weight:700">Hour:</label>
+        <select id="clock-hour" onchange="updateLearnClock()">
+          <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        </select>
+        <label style="font-weight:700">Min:</label>
+        <select id="clock-min" onchange="updateLearnClock()">
+          <option value="0">:00</option><option value="5">:05</option><option value="10">:10</option><option value="15">:15</option><option value="20">:20</option><option value="25">:25</option><option value="30" selected>:30</option><option value="35">:35</option><option value="40">:40</option><option value="45">:45</option><option value="50">:50</option><option value="55">:55</option>
+        </select>
+      </div>
+      <div class="clock-time" id="clock-time-display">3:30</div>
+    </div>
+  </div>
+
+  <div class="card accent-sky">
+    <h2 style="color:var(--sky)">📝 Tell the Time Quiz</h2>
+    <p>Look at the clock and pick the correct time!</p>
+    <div class="progress-track"><div class="progress-fill" id="telling-progress" style="width:0%"></div></div>
+    <div id="telling-quiz-area"></div>
+    <div class="feedback" id="telling-feedback"></div>
+    <div id="telling-completion" class="completion hidden">
+      <span class="big-emoji">🕐</span>
+      <h2>Time Teller!</h2>
+      <p id="telling-score-text"></p>
+      <button class="btn btn-primary" onclick="initTellingQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ELAPSED TIME -->
+<div class="section" id="sec-elapsed">
+  <div class="card accent-lilac">
+    <h2 style="color:var(--lilac)">⏱️ Elapsed Time</h2>
+    <p><strong>Elapsed time</strong> is how much time passes between a start time and an end time.</p>
+    <p><strong>Example:</strong> If you start reading at 2:00 and stop at 2:45, the elapsed time is 45 minutes.</p>
+    <p><strong>Tip:</strong> Count by 5s on the clock, or subtract the times!</p>
+  </div>
+
+  <div class="card accent-mint">
+    <h2 style="color:var(--mint)">📝 Elapsed Time Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="elapsed-progress" style="width:0%"></div></div>
+    <div id="elapsed-quiz-area"></div>
+    <div class="feedback" id="elapsed-feedback"></div>
+    <div id="elapsed-completion" class="completion hidden">
+      <span class="big-emoji">⏱️</span>
+      <h2>Time Wizard!</h2>
+      <p id="elapsed-score-text"></p>
+      <button class="btn btn-primary" onclick="initElapsedQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTING MONEY -->
+<div class="section" id="sec-counting">
+  <div class="card accent-gold">
+    <h2 style="color:#C68D00">💰 Know Your Coins</h2>
+    <p>Each coin has a different value. Let's review!</p>
+    <div class="info-grid">
+      <div class="info-box"><div class="coin-display"><div class="coin penny">1¢</div></div><div class="label" style="color:#CD7F32">Penny = 1¢</div></div>
+      <div class="info-box"><div class="coin-display"><div class="coin nickel">5¢</div></div><div class="label" style="color:#808080">Nickel = 5¢</div></div>
+      <div class="info-box"><div class="coin-display"><div class="coin dime">10¢</div></div><div class="label" style="color:#A0A0A0">Dime = 10¢</div></div>
+      <div class="info-box"><div class="coin-display"><div class="coin quarter">25¢</div></div><div class="label" style="color:#B0B0B0">Quarter = 25¢</div></div>
+    </div>
+    <p style="margin-top:12px"><strong>Tip:</strong> Start counting from the biggest coins first! Quarters → Dimes → Nickels → Pennies</p>
+  </div>
+
+  <div class="card">
+    <h2 style="color:var(--pink)">📝 Count the Money Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="counting-progress" style="width:0%"></div></div>
+    <div id="counting-quiz-area"></div>
+    <div class="feedback" id="counting-feedback"></div>
+    <div id="counting-completion" class="completion hidden">
+      <span class="big-emoji">💰</span>
+      <h2>Money Master!</h2>
+      <p id="counting-score-text"></p>
+      <button class="btn btn-primary" onclick="initCountingQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAKING CHANGE -->
+<div class="section" id="sec-change">
+  <div class="card accent-sky">
+    <h2 style="color:var(--sky)">🛒 Making Change</h2>
+    <p>When you buy something and pay more than the price, you get <strong>change</strong> back!</p>
+    <p><strong>How to find change:</strong> Subtract the price from what you paid.<br>
+    Example: Item costs $3.50, you pay $5.00 → Change = $5.00 - $3.50 = $1.50</p>
+    <p><strong>Count-up method:</strong> Start at the price and count up to what you paid!<br>
+    $3.50 → $3.75 (quarter) → $4.00 (quarter) → $5.00 (dollar) = $1.50 change</p>
+  </div>
+
+  <div class="card accent-lilac">
+    <h2 style="color:var(--lilac)">📝 Making Change Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="change-progress" style="width:0%"></div></div>
+    <div id="change-quiz-area"></div>
+    <div class="feedback" id="change-feedback"></div>
+    <div id="change-completion" class="completion hidden">
+      <span class="big-emoji">🛒</span>
+      <h2>Change Champion!</h2>
+      <p id="change-score-text"></p>
+      <button class="btn btn-primary" onclick="initChangeQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let stars = 0, streak = 0, level = 1;
+function addStars(n) { stars += n; document.getElementById('stars').textContent = stars; if (stars >= level * 12) { level++; document.getElementById('level').textContent = level; } }
+function bumpStreak() { streak++; document.getElementById('streak').textContent = streak; }
+function resetStreak() { streak = 0; document.getElementById('streak').textContent = streak; }
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  const names = ['telling','elapsed','counting','change'];
+  document.querySelectorAll('.tab')[names.indexOf(name)].classList.add('active');
+}
+
+// SVG Clock Drawing
+function drawClock(svgId, hour, minute) {
+  const svg = document.getElementById(svgId);
+  // Keep the base circle, remove old hands/numbers
+  while (svg.children.length > 2) svg.removeChild(svg.lastChild);
+
+  // Numbers
+  for (let i = 1; i <= 12; i++) {
+    const angle = (i * 30 - 90) * Math.PI / 180;
+    const x = 100 + 72 * Math.cos(angle);
+    const y = 100 + 72 * Math.sin(angle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', x);
+    text.setAttribute('y', y + 5);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-family', 'Baloo 2, cursive');
+    text.setAttribute('font-size', '16');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('fill', '#2D3436');
+    text.textContent = i;
+    svg.appendChild(text);
+  }
+
+  // Tick marks
+  for (let i = 0; i < 60; i++) {
+    const angle = (i * 6 - 90) * Math.PI / 180;
+    const inner = i % 5 === 0 ? 80 : 84;
+    const outer = 88;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', 100 + inner * Math.cos(angle));
+    line.setAttribute('y1', 100 + inner * Math.sin(angle));
+    line.setAttribute('x2', 100 + outer * Math.cos(angle));
+    line.setAttribute('y2', 100 + outer * Math.sin(angle));
+    line.setAttribute('stroke', i % 5 === 0 ? '#636E72' : '#DDD');
+    line.setAttribute('stroke-width', i % 5 === 0 ? '2' : '1');
+    svg.appendChild(line);
+  }
+
+  // Hour hand
+  const hAngle = ((hour % 12) * 30 + minute * 0.5 - 90) * Math.PI / 180;
+  const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  hLine.setAttribute('x1', 100); hLine.setAttribute('y1', 100);
+  hLine.setAttribute('x2', 100 + 45 * Math.cos(hAngle));
+  hLine.setAttribute('y2', 100 + 45 * Math.sin(hAngle));
+  hLine.setAttribute('stroke', '#EC4899'); hLine.setAttribute('stroke-width', '5');
+  hLine.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(hLine);
+
+  // Minute hand
+  const mAngle = (minute * 6 - 90) * Math.PI / 180;
+  const mLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  mLine.setAttribute('x1', 100); mLine.setAttribute('y1', 100);
+  mLine.setAttribute('x2', 100 + 62 * Math.cos(mAngle));
+  mLine.setAttribute('y2', 100 + 62 * Math.sin(mAngle));
+  mLine.setAttribute('stroke', '#3FC1F0'); mLine.setAttribute('stroke-width', '3');
+  mLine.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(mLine);
+
+  // Center dot
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('cx', 100); dot.setAttribute('cy', 100); dot.setAttribute('r', 5);
+  dot.setAttribute('fill', '#2D3436');
+  svg.appendChild(dot);
+}
+
+function updateLearnClock() {
+  const h = +document.getElementById('clock-hour').value;
+  const m = +document.getElementById('clock-min').value;
+  drawClock('learn-clock', h, m);
+  document.getElementById('clock-time-display').textContent = `${h}:${m.toString().padStart(2, '0')}`;
+}
+
+function formatTime(h, m) { return `${h}:${m.toString().padStart(2, '0')}`; }
+
+// Telling Time Quiz
+function initTellingQuiz() {
+  const qs = [];
+  const usedTimes = new Set();
+  while (qs.length < 6) {
+    const h = Math.floor(Math.random() * 12) + 1;
+    const m = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55][Math.floor(Math.random() * 12)];
+    const key = `${h}:${m}`;
+    if (usedTimes.has(key)) continue;
+    usedTimes.add(key);
+    const correct = formatTime(h, m);
+    const wrongs = new Set();
+    while (wrongs.size < 3) {
+      const wh = Math.floor(Math.random() * 12) + 1;
+      const wm = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55][Math.floor(Math.random() * 12)];
+      const w = formatTime(wh, wm);
+      if (w !== correct) wrongs.add(w);
+    }
+    const options = [correct, ...wrongs].sort(() => Math.random() - 0.5);
+    qs.push({ h, m, correct, options, answer: options.indexOf(correct) });
+  }
+  runQuiz({
+    qs, area: 'telling-quiz-area', feedback: 'telling-feedback', progress: 'telling-progress',
+    completion: 'telling-completion', scoreText: 'telling-score-text',
+    renderQ: (q, idx, total) => {
+      let html = `<div class="quiz-question">Question ${idx+1} of ${total}</div>`;
+      html += `<div class="clock-container"><svg class="clock-svg" viewBox="0 0 200 200" id="quiz-clock-${idx}"><circle cx="100" cy="100" r="95" fill="#FFFBF0" stroke="#E8E3DC" stroke-width="3"/><circle cx="100" cy="100" r="88" fill="none" stroke="#F0ECE6" stroke-width="1"/></svg></div>`;
+      html += '<p style="text-align:center;font-weight:700;margin-bottom:12px">What time does this clock show?</p>';
+      html += '<div class="options-grid">';
+      q.options.forEach((opt, i) => { html += `<button class="option-btn" onclick="tellingCheck(this,${i})">${opt}</button>`; });
+      html += '</div>';
+      return html;
+    },
+    afterRender: (q, idx) => { drawClock(`quiz-clock-${idx}`, q.h, q.m); },
+    explain: (q) => `The clock shows ${q.correct}. The short (pink) hand points to the hour, and the long (blue) hand points to the minutes!`
+  });
+}
+
+let activeQuiz = {};
+
+function runQuiz(cfg) {
+  let idx = 0, correct = 0;
+  document.getElementById(cfg.completion).classList.add('hidden');
+
+  function show() {
+    if (idx >= cfg.qs.length) {
+      document.getElementById(cfg.area).innerHTML = '';
+      document.getElementById(cfg.completion).classList.remove('hidden');
+      document.getElementById(cfg.scoreText).textContent = `You got ${correct} out of ${cfg.qs.length} correct!`;
+      addStars(correct * 2);
+      return;
+    }
+    document.getElementById(cfg.progress).style.width = (idx / cfg.qs.length * 100) + '%';
+    document.getElementById(cfg.feedback).className = 'feedback';
+    document.getElementById(cfg.area).innerHTML = cfg.renderQ(cfg.qs[idx], idx, cfg.qs.length);
+    if (cfg.afterRender) cfg.afterRender(cfg.qs[idx], idx);
+  }
+
+  activeQuiz[cfg.area] = { cfg, idx: () => idx, correct: () => correct, show, next: (isCorrect) => { if (isCorrect) correct++; idx++; setTimeout(show, 1400); } };
+  show();
+}
+
+function genericCheck(areaId, btn, chosen) {
+  const q = activeQuiz[areaId];
+  const cfg = q.cfg;
+  const currentQ = cfg.qs[q.idx()];
+  document.querySelectorAll(`#${areaId} .option-btn`).forEach(b => b.disabled = true);
+  const fb = document.getElementById(cfg.feedback);
+  if (chosen === currentQ.answer) {
+    btn.classList.add('correct'); fb.className = 'feedback correct show';
+    fb.textContent = '✅ ' + cfg.explain(currentQ); bumpStreak(); q.next(true);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll(`#${areaId} .option-btn`)[currentQ.answer].classList.add('correct');
+    fb.className = 'feedback wrong show'; fb.textContent = '💡 ' + cfg.explain(currentQ); resetStreak(); q.next(false);
+  }
+}
+
+function tellingCheck(btn, chosen) { genericCheck('telling-quiz-area', btn, chosen); }
+function elapsedCheck(btn, chosen) { genericCheck('elapsed-quiz-area', btn, chosen); }
+function countingCheck(btn, chosen) { genericCheck('counting-quiz-area', btn, chosen); }
+function changeCheck(btn, chosen) { genericCheck('change-quiz-area', btn, chosen); }
+
+// Elapsed Time Quiz
+function initElapsedQuiz() {
+  const qs = [
+    { q: 'School starts at 8:00 AM and ends at 3:00 PM. How long is the school day?', options: ['5 hours', '6 hours', '7 hours', '8 hours'], answer: 2, explain: q => 'From 8:00 AM to 3:00 PM is 7 hours. Count: 8→9→10→11→12→1→2→3 = 7 hops!' },
+    { q: 'Emma started reading at 4:15 and finished at 4:45. How long did she read?', options: ['15 minutes', '30 minutes', '45 minutes', '1 hour'], answer: 1, explain: q => '4:45 - 4:15 = 30 minutes of reading!' },
+    { q: 'The movie started at 7:00 PM and lasted 2 hours. What time did it end?', options: ['8:00 PM', '9:00 PM', '10:00 PM', '9:30 PM'], answer: 1, explain: q => '7:00 PM + 2 hours = 9:00 PM.' },
+    { q: 'Lunch is at 12:00 and recess is at 12:30. How long until recess?', options: ['15 minutes', '20 minutes', '30 minutes', '45 minutes'], answer: 2, explain: q => '12:30 - 12:00 = 30 minutes until recess!' },
+    { q: 'Dad started cooking at 5:30 PM and finished at 6:15 PM. How long did he cook?', options: ['30 minutes', '45 minutes', '1 hour', '15 minutes'], answer: 1, explain: q => '5:30 to 6:00 = 30 min, 6:00 to 6:15 = 15 min. Total = 45 minutes!' },
+    { q: 'Practice starts at 3:30 and lasts 1 hour and 15 minutes. When does it end?', options: ['4:15', '4:30', '4:45', '5:00'], answer: 2, explain: q => '3:30 + 1 hour = 4:30, + 15 minutes = 4:45.' },
+  ].sort(() => Math.random() - 0.5).slice(0, 5);
+
+  runQuiz({
+    qs, area: 'elapsed-quiz-area', feedback: 'elapsed-feedback', progress: 'elapsed-progress',
+    completion: 'elapsed-completion', scoreText: 'elapsed-score-text',
+    renderQ: (q, idx, total) => {
+      let html = `<div class="quiz-question">Question ${idx+1} of ${total}</div>`;
+      html += `<p style="font-size:1.1rem;margin-bottom:16px">${q.q}</p>`;
+      html += '<div class="options-grid">';
+      q.options.forEach((opt, i) => { html += `<button class="option-btn" onclick="elapsedCheck(this,${i})">${opt}</button>`; });
+      html += '</div>';
+      return html;
+    },
+    explain: (q) => q.explain(q)
+  });
+}
+
+// Counting Money Quiz
+function initCountingQuiz() {
+  const coinSets = [
+    { coins: [{t:'quarter',n:2},{t:'dime',n:1},{t:'nickel',n:1}], total: '65¢', options: ['55¢','60¢','65¢','70¢'], answer: 2 },
+    { coins: [{t:'quarter',n:1},{t:'dime',n:2},{t:'penny',n:3}], total: '48¢', options: ['43¢','45¢','48¢','53¢'], answer: 2 },
+    { coins: [{t:'quarter',n:3},{t:'nickel',n:1}], total: '80¢', options: ['75¢','80¢','85¢','90¢'], answer: 1 },
+    { coins: [{t:'dime',n:4},{t:'penny',n:2}], total: '42¢', options: ['40¢','42¢','44¢','52¢'], answer: 1 },
+    { coins: [{t:'quarter',n:1},{t:'dime',n:1},{t:'nickel',n:2},{t:'penny',n:4}], total: '49¢', options: ['44¢','46¢','49¢','54¢'], answer: 2 },
+    { coins: [{t:'quarter',n:4}], total: '$1.00', options: ['75¢','85¢','$1.00','$1.25'], answer: 2 },
+  ].sort(() => Math.random() - 0.5).slice(0, 5);
+
+  runQuiz({
+    qs: coinSets, area: 'counting-quiz-area', feedback: 'counting-feedback', progress: 'counting-progress',
+    completion: 'counting-completion', scoreText: 'counting-score-text',
+    renderQ: (q, idx, total) => {
+      let html = `<div class="quiz-question">Question ${idx+1} of ${total}: How much money is this?</div>`;
+      html += '<div class="coin-display">';
+      q.coins.forEach(c => {
+        for (let i = 0; i < c.n; i++) {
+          const labels = {penny:'1¢',nickel:'5¢',dime:'10¢',quarter:'25¢'};
+          html += `<div class="coin ${c.t}">${labels[c.t]}</div>`;
+        }
+      });
+      html += '</div>';
+      html += '<div class="options-grid">';
+      q.options.forEach((opt, i) => { html += `<button class="option-btn" onclick="countingCheck(this,${i})">${opt}</button>`; });
+      html += '</div>';
+      return html;
+    },
+    explain: (q) => {
+      const parts = q.coins.map(c => {
+        const vals = {penny:1,nickel:5,dime:10,quarter:25};
+        return `${c.n} ${c.t}${c.n>1?'s':''} = ${c.n * vals[c.t]}¢`;
+      });
+      return `Count: ${parts.join(' + ')} = ${q.total}`;
+    }
+  });
+}
+
+// Making Change Quiz
+function initChangeQuiz() {
+  const qs = [
+    { q: 'A candy bar costs $1.25. You pay with $2.00. How much change?', options: ['50¢','65¢','75¢','85¢'], answer: 2, explain: q => '$2.00 - $1.25 = $0.75 (75¢). Count up: $1.25→$1.50 (quarter)→$1.75 (quarter)→$2.00 (quarter) = 75¢' },
+    { q: 'A juice box costs 85¢. You pay with $1.00. How much change?', options: ['10¢','15¢','20¢','25¢'], answer: 1, explain: q => '$1.00 - $0.85 = $0.15 (15¢). A dime and a nickel!' },
+    { q: 'A book costs $4.50. You pay with $5.00. How much change?', options: ['25¢','50¢','75¢','$1.00'], answer: 1, explain: q => '$5.00 - $4.50 = $0.50 (50¢). Two quarters!' },
+    { q: 'A sticker costs 35¢. You pay with 50¢. How much change?', options: ['10¢','15¢','20¢','25¢'], answer: 1, explain: q => '50¢ - 35¢ = 15¢. A dime and a nickel!' },
+    { q: 'A sandwich costs $3.75. You pay with $5.00. How much change?', options: ['$1.00','$1.15','$1.25','$1.50'], answer: 2, explain: q => '$5.00 - $3.75 = $1.25. A dollar bill and a quarter!' },
+    { q: 'A pencil costs 60¢. You pay with $1.00. How much change?', options: ['30¢','35¢','40¢','45¢'], answer: 2, explain: q => '$1.00 - $0.60 = $0.40 (40¢). A quarter, a dime, and a nickel!' },
+  ].sort(() => Math.random() - 0.5).slice(0, 5);
+
+  runQuiz({
+    qs, area: 'change-quiz-area', feedback: 'change-feedback', progress: 'change-progress',
+    completion: 'change-completion', scoreText: 'change-score-text',
+    renderQ: (q, idx, total) => {
+      let html = `<div class="quiz-question">Question ${idx+1} of ${total}</div>`;
+      html += `<p style="font-size:1.1rem;margin-bottom:16px">${q.q}</p>`;
+      html += '<div class="options-grid">';
+      q.options.forEach((opt, i) => { html += `<button class="option-btn" onclick="changeCheck(this,${i})">${opt}</button>`; });
+      html += '</div>';
+      return html;
+    },
+    explain: (q) => q.explain(q)
+  });
+}
+
+// Init
+updateLearnClock();
+initTellingQuiz();
+initElapsedQuiz();
+initCountingQuiz();
+initChangeQuiz();
+</script>
+</body>
+</html>

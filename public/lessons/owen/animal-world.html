@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal World 🦎</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral: #FF6B6B;
+  --sky: #4ECDC4;
+  --mint: #A8E6CF;
+  --lilac: #DDA0DD;
+  --peach: #FFDAB9;
+  --pink: #FFB6C1;
+  --yellow: #FFD93D;
+  --blue: #6C9FFF;
+  --orange: #FF9F43;
+  --green: #2ECC71;
+  --bg: #FEFCF9;
+  --card-bg: #FFFFFF;
+  --text: #2D3436;
+  --text-light: #636E72;
+  --shadow: 0 4px 15px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --radius: 20px;
+  --radius-sm: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+h1, h2, h3 { font-family: 'Baloo 2', cursive; }
+
+.score-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: white;
+  border-bottom: 3px solid var(--orange);
+  padding: 10px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--shadow);
+}
+.score-bar h1 { font-size: 1.6rem; color: var(--orange); }
+.score-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+.pill {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 50px; padding: 6px 16px;
+  font-weight: 700; font-size: 1rem;
+  border: 2px solid #e9ecef;
+}
+.pill .emoji { font-size: 1.2rem; }
+.pill.stars { border-color: var(--yellow); background: linear-gradient(135deg, #fff9e6, #fff3cd); }
+.pill.streak { border-color: var(--coral); background: linear-gradient(135deg, #ffe8e8, #ffd4d4); }
+.pill.level { border-color: var(--sky); background: linear-gradient(135deg, #e8fffe, #d4f8f6); }
+
+.nav-tabs {
+  display: flex; gap: 8px; padding: 16px 20px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.nav-tab {
+  flex-shrink: 0;
+  padding: 12px 24px;
+  border-radius: 50px;
+  border: 3px solid #e9ecef;
+  background: white;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.nav-tab:hover { border-color: var(--orange); transform: translateY(-2px); }
+.nav-tab.active {
+  background: var(--orange);
+  color: white;
+  border-color: var(--orange);
+  box-shadow: 0 4px 15px rgba(255,159,67,0.4);
+}
+
+.section { display: none; padding: 20px; max-width: 800px; margin: 0 auto; }
+.section.active { display: block; }
+.section-header { text-align: center; margin-bottom: 24px; }
+.section-header h2 { font-size: 2rem; margin-bottom: 8px; }
+.section-header p { font-size: 1.2rem; color: var(--text-light); }
+
+.progress-track {
+  width: 100%; height: 20px;
+  background: #e9ecef; border-radius: 50px;
+  margin-bottom: 24px; overflow: hidden;
+  border: 2px solid #dee2e6;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange), var(--yellow));
+  border-radius: 50px; transition: width 0.5s ease;
+}
+.progress-text {
+  text-align: center; font-weight: 700; margin-bottom: 8px;
+  font-size: 1.1rem; color: var(--text-light);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px;
+  margin-bottom: 24px;
+  border-left: 6px solid var(--orange);
+}
+.card.coral { border-left-color: var(--coral); }
+.card.blue { border-left-color: var(--blue); }
+.card.green { border-left-color: var(--green); }
+.card.yellow { border-left-color: var(--yellow); }
+.card.mint { border-left-color: var(--mint); }
+
+.quiz-question {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.3;
+}
+.quiz-visual {
+  text-align: center;
+  font-size: 4rem;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.option-btn {
+  padding: 20px;
+  border-radius: var(--radius-sm);
+  border: 3px solid #e9ecef;
+  background: white;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.option-btn:hover {
+  border-color: var(--orange);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+.option-btn.correct {
+  background: #d4edda; border-color: var(--green);
+  animation: popIn 0.4s ease;
+}
+.option-btn.wrong {
+  background: #f8d7da; border-color: var(--coral);
+  animation: shake 0.5s ease;
+}
+.option-btn:disabled { cursor: default; opacity: 0.7; }
+
+.feedback {
+  padding: 20px; border-radius: var(--radius-sm);
+  text-align: center; font-size: 1.3rem;
+  font-weight: 700; margin-bottom: 16px; display: none;
+}
+.feedback.correct {
+  background: #d4edda; color: #155724;
+  border: 2px solid #c3e6cb; display: block;
+}
+.feedback.wrong {
+  background: #fff3cd; color: #856404;
+  border: 2px solid #ffc107; display: block;
+}
+
+.next-btn {
+  display: block; margin: 20px auto;
+  padding: 16px 48px; border-radius: 50px; border: none;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  color: white; font-family: 'Baloo 2', cursive;
+  font-size: 1.4rem; font-weight: 700;
+  cursor: pointer; transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(255,159,67,0.4);
+}
+.next-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+.completion { text-align: center; padding: 40px 20px; }
+.completion h2 { font-size: 2.4rem; margin-bottom: 12px; }
+.completion .big-emoji { font-size: 5rem; margin-bottom: 16px; }
+.completion p { font-size: 1.3rem; color: var(--text-light); margin-bottom: 24px; }
+.play-again-btn {
+  padding: 16px 48px; border-radius: 50px; border: none;
+  background: linear-gradient(135deg, var(--coral), var(--orange));
+  color: white; font-family: 'Baloo 2', cursive;
+  font-size: 1.4rem; font-weight: 700;
+  cursor: pointer; transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+}
+.play-again-btn:hover { transform: translateY(-3px); }
+
+@keyframes popIn {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-10px); }
+  80% { transform: translateX(10px); }
+}
+
+@media (max-width: 600px) {
+  .score-bar { flex-direction: column; gap: 8px; }
+  .quiz-question { font-size: 1.4rem; }
+  .quiz-visual { font-size: 3rem; }
+  .option-btn { font-size: 1.2rem; padding: 16px; }
+  .card { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="score-bar">
+  <h1>🦎 Animal World</h1>
+  <div class="score-pills">
+    <div class="pill stars"><span class="emoji">⭐</span> <span id="stars">0</span></div>
+    <div class="pill streak"><span class="emoji">🔥</span> <span id="streak">0</span></div>
+    <div class="pill level"><span class="emoji">🏆</span> Lv <span id="level">1</span></div>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showSection(0)">🔊 Animal Sounds</button>
+  <button class="nav-tab" onclick="showSection(1)">🍼 Baby Animals</button>
+  <button class="nav-tab" onclick="showSection(2)">🏠 Where They Live</button>
+  <button class="nav-tab" onclick="showSection(3)">📋 Animal Groups</button>
+</div>
+
+<div id="section-0" class="section active"></div>
+<div id="section-1" class="section"></div>
+<div id="section-2" class="section"></div>
+<div id="section-3" class="section"></div>
+
+<script>
+const state = {
+  stars: 0, streak: 0, level: 1, totalCorrect: 0,
+  sections: [{},{},{},{}]
+};
+
+const sectionData = [
+  {
+    title: "Animal Sounds! 🔊",
+    subtitle: "What sound does this animal make?",
+    accent: "",
+    questions: [
+      { visual: "🐮", q: "What sound does a COW make?", options: ["Woof!","Moo!","Baa!","Oink!"], answer: 1 },
+      { visual: "🐶", q: "What sound does a DOG make?", options: ["Meow!","Moo!","Woof!","Quack!"], answer: 2 },
+      { visual: "🐱", q: "What sound does a CAT make?", options: ["Meow!","Woof!","Oink!","Baa!"], answer: 0 },
+      { visual: "🐷", q: "What sound does a PIG make?", options: ["Moo!","Quack!","Baa!","Oink!"], answer: 3 },
+      { visual: "🐔", q: "What sound does a CHICKEN make?", options: ["Moo!","Cluck cluck!","Woof!","Meow!"], answer: 1 },
+      { visual: "🐸", q: "What sound does a FROG make?", options: ["Moo!","Woof!","Ribbit!","Baa!"], answer: 2 },
+      { visual: "🦆", q: "What sound does a DUCK make?", options: ["Quack!","Moo!","Woof!","Oink!"], answer: 0 },
+    ]
+  },
+  {
+    title: "Baby Animals! 🍼",
+    subtitle: "What is a baby animal called?",
+    accent: "coral",
+    questions: [
+      { visual: "🐶 + 🍼", q: "A baby dog is called a...", options: ["Kitten","Calf","Puppy","Chick"], answer: 2 },
+      { visual: "🐱 + 🍼", q: "A baby cat is called a...", options: ["Puppy","Kitten","Lamb","Foal"], answer: 1 },
+      { visual: "🐮 + 🍼", q: "A baby cow is called a...", options: ["Puppy","Kitten","Chick","Calf"], answer: 3 },
+      { visual: "🐔 + 🍼", q: "A baby chicken is called a...", options: ["Puppy","Calf","Chick","Lamb"], answer: 2 },
+      { visual: "🐑 + 🍼", q: "A baby sheep is called a...", options: ["Lamb","Puppy","Kitten","Calf"], answer: 0 },
+      { visual: "🐴 + 🍼", q: "A baby horse is called a...", options: ["Puppy","Calf","Chick","Foal"], answer: 3 },
+      { visual: "🐻 + 🍼", q: "A baby bear is called a...", options: ["Kitten","Puppy","Cub","Lamb"], answer: 2 },
+    ]
+  },
+  {
+    title: "Where Do They Live? 🏠",
+    subtitle: "Match the animal to its home!",
+    accent: "green",
+    questions: [
+      { visual: "🐄", q: "Where does a COW live?", options: ["🌊 Ocean","🏡 Farm","🌴 Jungle","❄️ Arctic"], answer: 1 },
+      { visual: "🐟", q: "Where does a FISH live?", options: ["🏡 Farm","🌲 Forest","🌊 Ocean/Water","🏜️ Desert"], answer: 2 },
+      { visual: "🐒", q: "Where does a MONKEY live?", options: ["🏡 Farm","🌊 Ocean","❄️ Arctic","🌴 Jungle"], answer: 3 },
+      { visual: "🐻", q: "Where does a BEAR live?", options: ["🌊 Ocean","🌲 Forest","🏡 Farm","🏜️ Desert"], answer: 1 },
+      { visual: "🐧", q: "Where does a PENGUIN live?", options: ["🌴 Jungle","🏡 Farm","🏜️ Desert","❄️ Cold places"], answer: 3 },
+      { visual: "🐫", q: "Where does a CAMEL live?", options: ["🌊 Ocean","❄️ Arctic","🏜️ Desert","🌲 Forest"], answer: 2 },
+    ]
+  },
+  {
+    title: "Animal Groups! 📋",
+    subtitle: "Is this a pet, farm animal, or wild animal?",
+    accent: "blue",
+    questions: [
+      { visual: "🐶", q: "A DOG is a...", options: ["🏡 Pet","🌾 Farm animal","🦁 Wild animal","🐟 Sea animal"], answer: 0 },
+      { visual: "🐄", q: "A COW is a...", options: ["🏡 Pet","🌾 Farm animal","🦁 Wild animal","🐟 Sea animal"], answer: 1 },
+      { visual: "🦁", q: "A LION is a...", options: ["🏡 Pet","🌾 Farm animal","🦁 Wild animal","🐟 Sea animal"], answer: 2 },
+      { visual: "🐠", q: "A tropical FISH is a...", options: ["🌾 Farm animal","🦁 Wild animal","🏡 Pet","🐦 Bird"], answer: 2 },
+      { visual: "🐔", q: "A CHICKEN is a...", options: ["🏡 Pet","🌾 Farm animal","🦁 Wild animal","🐟 Sea animal"], answer: 1 },
+      { visual: "🐘", q: "An ELEPHANT is a...", options: ["🏡 Pet","🌾 Farm animal","🦁 Wild animal","🐟 Sea animal"], answer: 2 },
+      { visual: "🐱", q: "A CAT is a...", options: ["🏡 Pet","🌾 Farm animal","🦁 Wild animal","🐟 Sea animal"], answer: 0 },
+    ]
+  }
+];
+
+const encourageCorrect = ["🎉 AWESOME!", "⭐ ANIMAL EXPERT!", "🥳 YOU KNOW IT!", "💪 SO SMART!", "🌟 AMAZING!", "🏆 WILD!"];
+const encourageWrong = ["Almost! 💪", "Good try! 🌟", "Keep going! 📚", "You'll get it! 😊"];
+
+function updateScore() {
+  document.getElementById('stars').textContent = state.stars;
+  document.getElementById('streak').textContent = state.streak;
+  state.level = Math.floor(state.totalCorrect / 5) + 1;
+  document.getElementById('level').textContent = state.level;
+}
+
+function showSection(idx) {
+  document.querySelectorAll('.nav-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i===idx));
+  if (!state.sections[idx].initialized) initSection(idx);
+}
+
+function initSection(idx) {
+  const sec = state.sections[idx];
+  sec.initialized = true;
+  sec.current = 0;
+  sec.correct = 0;
+  sec.questions = [...sectionData[idx].questions].sort(() => Math.random()-0.5);
+  renderQuestion(idx);
+}
+
+function renderQuestion(idx) {
+  const sec = state.sections[idx];
+  const data = sectionData[idx];
+  const container = document.getElementById('section-'+idx);
+
+  if (sec.current >= sec.questions.length) {
+    container.innerHTML = `
+      <div class="completion">
+        <div class="big-emoji">🦁</div>
+        <h2>Section Complete!</h2>
+        <p>You got ${sec.correct} out of ${sec.questions.length} right!</p>
+        <p>${sec.correct === sec.questions.length ? "🌟 PERFECT! You're an Animal Expert! 🌟" : "Great job! You know so much! 💪"}</p>
+        <button class="play-again-btn" onclick="resetSection(${idx})">🔄 Play Again!</button>
+      </div>`;
+    return;
+  }
+
+  const q = sec.questions[sec.current];
+  const total = sec.questions.length;
+  const pct = Math.round((sec.current/total)*100);
+
+  container.innerHTML = `
+    <div class="section-header">
+      <h2>${data.title}</h2>
+      <p>${data.subtitle}</p>
+    </div>
+    <div class="progress-text">Question ${sec.current+1} of ${total}</div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="card ${data.accent}">
+      <div class="quiz-visual">${q.visual}</div>
+      <div class="quiz-question">${q.q}</div>
+      <div class="options-grid">
+        ${q.options.map((o,i) => `<button class="option-btn" onclick="answer(${idx},${i})">${o}</button>`).join('')}
+      </div>
+      <div id="feedback-${idx}" class="feedback"></div>
+    </div>
+    <button class="next-btn" id="next-${idx}" style="display:none" onclick="nextQ(${idx})">Next ➡️</button>`;
+}
+
+function answer(idx, chosen) {
+  const sec = state.sections[idx];
+  const q = sec.questions[sec.current];
+  const btns = document.querySelectorAll(`#section-${idx} .option-btn`);
+  const fb = document.getElementById('feedback-'+idx);
+  const nextBtn = document.getElementById('next-'+idx);
+
+  btns.forEach(b => b.disabled = true);
+
+  if (chosen === q.answer) {
+    btns[chosen].classList.add('correct');
+    sec.correct++; state.stars++; state.streak++; state.totalCorrect++;
+    fb.className = 'feedback correct';
+    fb.textContent = encourageCorrect[Math.floor(Math.random()*encourageCorrect.length)];
+  } else {
+    btns[chosen].classList.add('wrong');
+    btns[q.answer].classList.add('correct');
+    state.streak = 0;
+    fb.className = 'feedback wrong';
+    fb.textContent = encourageWrong[Math.floor(Math.random()*encourageWrong.length)] + ` The answer is "${q.options[q.answer]}"!`;
+  }
+  updateScore();
+  nextBtn.style.display = 'block';
+}
+
+function nextQ(idx) { state.sections[idx].current++; renderQuestion(idx); }
+function resetSection(idx) { state.sections[idx].initialized = false; initSection(idx); }
+
+initSection(0);
+</script>
+</body>
+</html>

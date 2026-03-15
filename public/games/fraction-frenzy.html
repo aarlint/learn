@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Fraction Frenzy 🍕</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(146, 64, 14, 0.9);
+  border-bottom: 3px solid #78350f;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fef3c7;
+}
+
+.stat-icon { font-size: 1.3rem; }
+
+.level-badge {
+  background: #78350f;
+  color: #fef3c7;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Question area */
+.question-area {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255,255,255,0.5);
+}
+
+.question-text {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #78350f;
+  margin-bottom: 8px;
+}
+
+.fraction-big {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: #92400e;
+  padding: 12px 24px;
+  border-radius: 16px;
+  margin: 0 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.fraction-big .num, .fraction-big .den {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+}
+
+.fraction-big .bar {
+  width: 50px;
+  height: 4px;
+  background: #fcd34d;
+  border-radius: 2px;
+  margin: 4px 0;
+}
+
+.hint-text {
+  font-size: 0.95rem;
+  color: #92400e;
+  margin-top: 10px;
+}
+
+/* Pizza area */
+.pizza-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pizza-container {
+  position: relative;
+}
+
+canvas {
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+}
+
+/* Selection counter */
+.selection-counter {
+  text-align: center;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.7);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #78350f;
+}
+
+.selection-counter .selected-num {
+  color: #16a34a;
+  font-size: 1.5rem;
+}
+
+.selection-counter .total-num {
+  color: #92400e;
+}
+
+/* Check button */
+.button-area {
+  padding: 16px 20px 24px;
+  text-align: center;
+  background: rgba(255,255,255,0.5);
+}
+
+.check-btn {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  border: none;
+  padding: 16px 60px;
+  border-radius: 50px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+  transition: transform 0.1s;
+}
+
+.check-btn:active { transform: scale(0.95); }
+
+.clear-btn {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+/* Feedback */
+.feedback {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: 800;
+  z-index: 50;
+  pointer-events: none;
+  animation: popFeedback 0.8s ease-out forwards;
+}
+
+.feedback.correct { color: #16a34a; text-shadow: 0 4px 20px rgba(22,163,74,0.5); }
+.feedback.wrong { color: #dc2626; text-shadow: 0 4px 20px rgba(220,38,38,0.5); }
+
+@keyframes popFeedback {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-30px); }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  border-radius: 24px;
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 90%;
+  width: 340px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal h2 { font-size: 1.8rem; color: #92400e; margin-bottom: 8px; }
+.modal .stars { font-size: 2.5rem; margin: 12px 0; }
+.modal p { color: #666; margin-bottom: 20px; }
+
+.modal button {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 4px;
+}
+
+.modal button:active { transform: scale(0.95); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="hud">
+    <div class="stat">
+      <span class="stat-icon">⭐</span>
+      <span id="score">0</span>
+    </div>
+    <div class="level-badge" id="levelBadge">Level 1</div>
+    <div class="stat">
+      <span class="stat-icon">❤️</span>
+      <span id="lives">3</span>
+    </div>
+  </div>
+
+  <div class="question-area">
+    <div class="question-text">
+      Tap slices to show
+      <span class="fraction-big">
+        <span class="num" id="numDisplay">1</span>
+        <div class="bar"></div>
+        <span class="den" id="denDisplay">2</span>
+      </span>
+      of the pizza
+    </div>
+    <div class="hint-text" id="hintText">The bottom number shows how many slices total</div>
+  </div>
+
+  <div class="pizza-area">
+    <div class="pizza-container">
+      <canvas id="pizza"></canvas>
+    </div>
+  </div>
+
+  <div class="selection-counter">
+    You selected <span class="selected-num" id="selectedCount">0</span> 
+    out of <span class="total-num" id="totalSlices">2</span> slices
+  </div>
+
+  <div class="button-area">
+    <button class="check-btn" id="checkBtn">Check Answer</button>
+    <button class="clear-btn" id="clearBtn">Clear</button>
+  </div>
+</div>
+
+<div id="feedback" class="feedback hidden"></div>
+
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="modalTitle">Great Job!</h2>
+    <div class="stars" id="modalStars">⭐⭐⭐</div>
+    <p id="modalText">You're a fraction master!</p>
+    <button id="nextBtn">Continue 🍕</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('pizza');
+const ctx = canvas.getContext('2d');
+
+// Game state
+let score = 0;
+let lives = 3;
+let level = 1;
+let questionsAnswered = 0;
+let perfectRound = true;
+
+// Current question
+let numerator = 1;
+let denominator = 2;
+let selectedSlices = new Set();
+
+// Pizza drawing
+let pizzaSize = 280;
+let centerX, centerY, radius;
+
+// Questions per level, then level up
+const QUESTIONS_PER_LEVEL = 5;
+
+// Level configurations - what denominators to use
+const levelConfig = {
+  1: { denominators: [2, 4], hints: true },
+  2: { denominators: [2, 3, 4], hints: true },
+  3: { denominators: [2, 3, 4, 6], hints: false },
+  4: { denominators: [2, 3, 4, 5, 6, 8], hints: false },
+};
+
+function init() {
+  resize();
+  generateQuestion();
+  draw();
+}
+
+function resize() {
+  const container = canvas.parentElement;
+  const maxSize = Math.min(container.clientWidth - 40, container.clientHeight - 20, 320);
+  pizzaSize = maxSize;
+  
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = pizzaSize * dpr;
+  canvas.height = pizzaSize * dpr;
+  canvas.style.width = pizzaSize + 'px';
+  canvas.style.height = pizzaSize + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  
+  centerX = pizzaSize / 2;
+  centerY = pizzaSize / 2;
+  radius = pizzaSize / 2 - 10;
+  
+  draw();
+}
+
+function generateQuestion() {
+  const config = levelConfig[level] || levelConfig[4];
+  const denoms = config.denominators;
+  
+  // Pick a denominator
+  denominator = denoms[Math.floor(Math.random() * denoms.length)];
+  
+  // Pick a numerator (1 to denominator-1, so it's a proper fraction)
+  numerator = 1 + Math.floor(Math.random() * (denominator - 1));
+  
+  // Clear selection
+  selectedSlices.clear();
+  
+  // Update UI
+  updateDisplay();
+}
+
+function updateDisplay() {
+  document.getElementById('numDisplay').textContent = numerator;
+  document.getElementById('denDisplay').textContent = denominator;
+  document.getElementById('totalSlices').textContent = denominator;
+  document.getElementById('selectedCount').textContent = selectedSlices.size;
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('levelBadge').textContent = 'Level ' + level;
+  
+  // Hint text
+  const config = levelConfig[level] || levelConfig[4];
+  const hintEl = document.getElementById('hintText');
+  if (config.hints) {
+    hintEl.textContent = `Select ${numerator} slices to show ${numerator}/${denominator}`;
+    hintEl.style.display = 'block';
+  } else {
+    hintEl.style.display = 'none';
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, pizzaSize, pizzaSize);
+  
+  const sliceAngle = (Math.PI * 2) / denominator;
+  const startAngle = -Math.PI / 2; // Start from top
+  
+  // Draw each slice
+  for (let i = 0; i < denominator; i++) {
+    const angle1 = startAngle + i * sliceAngle;
+    const angle2 = startAngle + (i + 1) * sliceAngle;
+    const isSelected = selectedSlices.has(i);
+    
+    // Crust (outer ring)
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, angle1, angle2);
+    ctx.closePath();
+    ctx.fillStyle = '#d97706';
+    ctx.fill();
+    
+    // Cheese (inner)
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius * 0.88, angle1, angle2);
+    ctx.closePath();
+    ctx.fillStyle = isSelected ? '#86efac' : '#fcd34d';
+    ctx.fill();
+    
+    // Pepperoni
+    const midAngle = (angle1 + angle2) / 2;
+    const pepDist = radius * 0.5;
+    const pepX = centerX + Math.cos(midAngle) * pepDist;
+    const pepY = centerY + Math.sin(midAngle) * pepDist;
+    
+    ctx.beginPath();
+    ctx.arc(pepX, pepY, radius * 0.1, 0, Math.PI * 2);
+    ctx.fillStyle = isSelected ? '#15803d' : '#dc2626';
+    ctx.fill();
+    
+    // Small pepperoni
+    const pep2Dist = radius * 0.3;
+    const pep2X = centerX + Math.cos(midAngle + 0.3) * pep2Dist;
+    const pep2Y = centerY + Math.sin(midAngle + 0.3) * pep2Dist;
+    
+    ctx.beginPath();
+    ctx.arc(pep2X, pep2Y, radius * 0.06, 0, Math.PI * 2);
+    ctx.fillStyle = isSelected ? '#15803d' : '#dc2626';
+    ctx.fill();
+    
+    // Selection checkmark
+    if (isSelected) {
+      ctx.save();
+      ctx.font = `bold ${radius * 0.15}px sans-serif`;
+      ctx.fillStyle = '#15803d';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const checkDist = radius * 0.7;
+      const checkX = centerX + Math.cos(midAngle) * checkDist;
+      const checkY = centerY + Math.sin(midAngle) * checkDist;
+      ctx.fillText('✓', checkX, checkY);
+      ctx.restore();
+    }
+  }
+  
+  // Draw slice dividing lines
+  ctx.strokeStyle = '#92400e';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < denominator; i++) {
+    const angle = startAngle + i * sliceAngle;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+      centerX + Math.cos(angle) * radius,
+      centerY + Math.sin(angle) * radius
+    );
+    ctx.stroke();
+  }
+  
+  // Outer crust ring
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#78350f';
+  ctx.fill();
+}
+
+function getSliceAtPoint(x, y) {
+  const dx = x - centerX;
+  const dy = y - centerY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  
+  if (dist > radius || dist < 10) return -1;
+  
+  let angle = Math.atan2(dy, dx);
+  const startAngle = -Math.PI / 2;
+  
+  // Normalize angle relative to start
+  angle = angle - startAngle;
+  while (angle < 0) angle += Math.PI * 2;
+  while (angle >= Math.PI * 2) angle -= Math.PI * 2;
+  
+  const sliceAngle = (Math.PI * 2) / denominator;
+  return Math.floor(angle / sliceAngle);
+}
+
+function handleTap(e) {
+  e.preventDefault();
+  
+  const rect = canvas.getBoundingClientRect();
+  let x, y;
+  
+  if (e.touches && e.touches.length > 0) {
+    x = e.touches[0].clientX - rect.left;
+    y = e.touches[0].clientY - rect.top;
+  } else {
+    x = e.clientX - rect.left;
+    y = e.clientY - rect.top;
+  }
+  
+  const slice = getSliceAtPoint(x, y);
+  if (slice < 0 || slice >= denominator) return;
+  
+  // Toggle selection
+  if (selectedSlices.has(slice)) {
+    selectedSlices.delete(slice);
+  } else {
+    selectedSlices.add(slice);
+  }
+  
+  document.getElementById('selectedCount').textContent = selectedSlices.size;
+  draw();
+}
+
+canvas.addEventListener('click', handleTap);
+canvas.addEventListener('touchstart', handleTap, { passive: false });
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  selectedSlices.clear();
+  document.getElementById('selectedCount').textContent = 0;
+  draw();
+});
+
+document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+
+function checkAnswer() {
+  const selected = selectedSlices.size;
+  
+  // The fraction shown is numerator/denominator
+  // The user should select exactly 'numerator' slices out of 'denominator' total
+  if (selected === numerator) {
+    // Correct!
+    const points = perfectRound ? 100 : 50;
+    score += points;
+    showFeedback('Correct! 🎉', 'correct');
+    
+    questionsAnswered++;
+    
+    if (questionsAnswered >= QUESTIONS_PER_LEVEL) {
+      // Level complete
+      setTimeout(() => showLevelComplete(), 1000);
+    } else {
+      setTimeout(() => {
+        generateQuestion();
+        draw();
+      }, 1000);
+    }
+  } else {
+    // Wrong
+    perfectRound = false;
+    lives--;
+    updateDisplay();
+    
+    if (selected < numerator) {
+      showFeedback(`Need more! (${selected}/${denominator} ≠ ${numerator}/${denominator})`, 'wrong');
+    } else {
+      showFeedback(`Too many! (${selected}/${denominator} ≠ ${numerator}/${denominator})`, 'wrong');
+    }
+    
+    if (lives <= 0) {
+      setTimeout(() => showGameOver(), 1000);
+    }
+  }
+}
+
+function showFeedback(text, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.className = 'feedback ' + type;
+  // Reset animation
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = '';
+  setTimeout(() => el.classList.add('hidden'), 800);
+}
+
+function showLevelComplete() {
+  const stars = perfectRound ? 3 : (lives >= 2 ? 2 : 1);
+  document.getElementById('modalTitle').textContent = 'Level ' + level + ' Complete!';
+  document.getElementById('modalStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  document.getElementById('modalText').textContent = `Score: ${score}`;
+  document.getElementById('nextBtn').textContent = level >= 4 ? 'Play Again 🍕' : 'Next Level 🍕';
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function showGameOver() {
+  document.getElementById('modalTitle').textContent = 'Game Over';
+  document.getElementById('modalStars').textContent = '🍕';
+  document.getElementById('modalText').textContent = `Final Score: ${score}`;
+  document.getElementById('nextBtn').textContent = 'Try Again 🍕';
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  document.getElementById('modal').classList.add('hidden');
+  
+  if (lives <= 0 || level >= 4) {
+    // Restart
+    score = 0;
+    lives = 3;
+    level = 1;
+  } else {
+    // Next level
+    level++;
+  }
+  
+  questionsAnswered = 0;
+  perfectRound = true;
+  generateQuestion();
+  draw();
+});
+
+window.addEventListener('resize', resize);
+init();
+</script>
+</body>
+</html>

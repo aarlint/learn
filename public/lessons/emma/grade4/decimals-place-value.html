@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Decimals & Place Value - 4th Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #22c55e;
+  --green-light: #f0fdf4;
+  --purple: #a48bdb;
+  --purple-light: #f3f0ff;
+  --mint: #2DD4A8;
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --sky: #3fc1f0;
+  --sky-light: #EFF6FF;
+  --sun: #FFD93D;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #1E293B;
+  --text-mid: #475569;
+  --border: #E2E8F0;
+  --shadow: 0 8px 30px rgba(0,0,0,0.06);
+  --radius: 20px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: 'Nunito', sans-serif; 
+  background: var(--bg); 
+  color: var(--text); 
+  min-height: 100vh;
+  padding: 16px;
+}
+.app { max-width: 500px; margin: 0 auto; padding-bottom: 100px; }
+.header { text-align: center; padding: 16px 0; }
+.header h1 { 
+  font-family: 'Baloo 2', cursive; 
+  font-size: 1.8rem; 
+  background: linear-gradient(135deg, var(--green), var(--mint)); 
+  -webkit-background-clip: text; 
+  -webkit-text-fill-color: transparent; 
+}
+.header p { color: var(--text-mid); font-size: 0.9rem; }
+
+.progress-bar {
+  height: 8px;
+  background: var(--border);
+  border-radius: 10px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--mint));
+  transition: width 0.5s ease;
+}
+
+.score-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.score-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card h2 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  color: var(--green);
+}
+.card p { color: var(--text-mid); margin-bottom: 12px; font-size: 0.95rem; }
+
+.problem-area {
+  background: var(--green-light);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.big-number {
+  font-family: 'Baloo 2', cursive;
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.place-value-chart {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin: 16px 0;
+}
+
+.place-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+}
+
+.place-label {
+  font-size: 0.7rem;
+  color: var(--text-mid);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.place-digit {
+  width: 40px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+}
+
+.place-digit.highlight {
+  background: var(--sun);
+  border-color: #f59e0b;
+}
+
+.decimal-point {
+  font-size: 2.5rem;
+  font-weight: 900;
+  align-self: flex-end;
+  margin-bottom: 8px;
+}
+
+.visual-grid {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.grid-100 {
+  display: grid;
+  grid-template-columns: repeat(10, 8px);
+  gap: 1px;
+}
+
+.grid-100 .cell {
+  width: 8px;
+  height: 8px;
+  background: var(--border);
+  border-radius: 1px;
+}
+
+.grid-100 .cell.filled {
+  background: var(--green);
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.choice-btn {
+  padding: 16px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.choice-btn:active { transform: scale(0.96); }
+.choice-btn.correct { background: #dcfce7; border-color: var(--green); color: #16a34a; }
+.choice-btn.wrong { background: var(--coral-light); border-color: var(--coral); color: var(--coral); }
+
+.input-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.answer-input {
+  width: 120px;
+  padding: 14px;
+  font-size: 1.4rem;
+  font-family: 'Baloo 2', cursive;
+  text-align: center;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+}
+.answer-input:focus { outline: none; border-color: var(--green); }
+
+.btn {
+  padding: 14px 32px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
+.btn-primary { background: var(--green); color: white; }
+.btn-primary:active { transform: scale(0.96); }
+
+.feedback {
+  padding: 16px;
+  border-radius: 14px;
+  text-align: center;
+  margin-top: 16px;
+  font-weight: 700;
+}
+.feedback.correct { background: #dcfce7; color: #16a34a; }
+.feedback.wrong { background: var(--coral-light); color: var(--coral); }
+
+.topic-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.topic-tab {
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.topic-tab.active { background: var(--green); color: white; border-color: var(--green); }
+
+.tip-box {
+  background: var(--sun);
+  color: #92400e;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+.tip-box strong { display: block; margin-bottom: 4px; }
+
+.hidden { display: none !important; }
+
+.complete-screen {
+  text-align: center;
+  padding: 40px 20px;
+}
+.complete-screen .icon { font-size: 4rem; margin-bottom: 16px; }
+.complete-screen h2 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; color: var(--green); }
+.complete-screen p { color: var(--text-mid); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>📊 Decimals & Place Value</h1>
+    <p>4th Grade • Understanding Decimals</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-item">⭐ <span id="stars">0</span></div>
+    <div class="score-item">🔥 <span id="streak">0</span></div>
+  </div>
+
+  <div class="topic-tabs" id="topicTabs">
+    <button class="topic-tab active" data-topic="identify">Identify Digit</button>
+    <button class="topic-tab" data-topic="value">Digit Value</button>
+    <button class="topic-tab" data-topic="compare">Compare</button>
+    <button class="topic-tab" data-topic="fraction">As Fraction</button>
+  </div>
+
+  <div class="card" id="problemCard">
+    <h2 id="problemTitle">Place Value</h2>
+    <p id="problemInstructions">What digit is in the tenths place?</p>
+    
+    <div class="problem-area" id="problemArea"></div>
+    <div class="answer-section" id="answerSection"></div>
+    <div class="feedback hidden" id="feedback"></div>
+  </div>
+
+  <div class="card hidden" id="completeCard">
+    <div class="complete-screen">
+      <div class="icon">🎉</div>
+      <h2>Topic Complete!</h2>
+      <p id="completeMsg"></p>
+      <button class="btn btn-primary" onclick="nextTopic()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROBLEMS_PER_TOPIC = 6;
+
+const topics = {
+  identify: {
+    title: 'Identify the Digit',
+    generate: generateIdentifyProblem,
+  },
+  value: {
+    title: 'Digit Value',
+    generate: generateValueProblem,
+  },
+  compare: {
+    title: 'Compare Decimals',
+    generate: generateCompareProblem,
+  },
+  fraction: {
+    title: 'Decimal as Fraction',
+    generate: generateFractionProblem,
+  },
+};
+
+let state = {
+  topic: 'identify',
+  problem: null,
+  problemNum: 0,
+  stars: 0,
+  streak: 0,
+  answered: false,
+};
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateDecimal() {
+  const whole = randInt(0, 99);
+  const tenths = randInt(0, 9);
+  const hundredths = randInt(0, 9);
+  return { whole, tenths, hundredths, value: whole + tenths * 0.1 + hundredths * 0.01 };
+}
+
+function formatDecimal(d) {
+  return `${d.whole}.${d.tenths}${d.hundredths}`;
+}
+
+function generateIdentifyProblem() {
+  const dec = generateDecimal();
+  const places = ['ones', 'tenths', 'hundredths'];
+  const place = places[randInt(0, 2)];
+  
+  let answer;
+  if (place === 'ones') answer = dec.whole % 10;
+  else if (place === 'tenths') answer = dec.tenths;
+  else answer = dec.hundredths;
+  
+  const choices = [answer];
+  while (choices.length < 4) {
+    const wrong = randInt(0, 9);
+    if (!choices.includes(wrong)) choices.push(wrong);
+  }
+  choices.sort(() => Math.random() - 0.5);
+  
+  return {
+    type: 'identify',
+    decimal: dec,
+    place,
+    answer: choices.indexOf(answer),
+    choices,
+    instructions: `What digit is in the <strong>${place}</strong> place?`,
+    tip: `The ${place} place is ${place === 'ones' ? 'before' : 'after'} the decimal point.`,
+  };
+}
+
+function generateValueProblem() {
+  const dec = generateDecimal();
+  const places = ['tenths', 'hundredths'];
+  const place = places[randInt(0, 1)];
+  
+  const digit = place === 'tenths' ? dec.tenths : dec.hundredths;
+  const value = place === 'tenths' ? digit * 0.1 : digit * 0.01;
+  
+  const choices = [value];
+  // Generate plausible wrong answers
+  if (place === 'tenths') {
+    choices.push(digit * 0.01, digit, digit * 0.001);
+  } else {
+    choices.push(digit * 0.1, digit * 0.001, digit);
+  }
+  choices.sort(() => Math.random() - 0.5);
+  
+  return {
+    type: 'value',
+    decimal: dec,
+    place,
+    digit,
+    answer: choices.indexOf(value),
+    choices: choices.map(v => v.toFixed(place === 'tenths' ? 1 : 2).replace(/\.?0+$/, '') || '0'),
+    instructions: `The ${digit} in the ${place} place has what value?`,
+    tip: `In the ${place} place, each 1 is worth ${place === 'tenths' ? '0.1' : '0.01'}`,
+  };
+}
+
+function generateCompareProblem() {
+  const d1 = generateDecimal();
+  let d2 = generateDecimal();
+  
+  // Make them close but different
+  while (d1.value === d2.value) {
+    d2 = generateDecimal();
+  }
+  
+  const answer = d1.value > d2.value ? 'left' : 'right';
+  
+  return {
+    type: 'compare',
+    d1,
+    d2,
+    answer,
+    instructions: 'Which decimal is greater?',
+    tip: `Compare from left to right: first the ones, then tenths, then hundredths.`,
+  };
+}
+
+function generateFractionProblem() {
+  // Simple decimals that convert nicely
+  const options = [
+    { dec: 0.5, frac: '1/2' },
+    { dec: 0.25, frac: '1/4' },
+    { dec: 0.75, frac: '3/4' },
+    { dec: 0.1, frac: '1/10' },
+    { dec: 0.2, frac: '2/10' },
+    { dec: 0.3, frac: '3/10' },
+    { dec: 0.4, frac: '4/10' },
+    { dec: 0.6, frac: '6/10' },
+    { dec: 0.01, frac: '1/100' },
+    { dec: 0.05, frac: '5/100' },
+    { dec: 0.10, frac: '10/100' },
+    { dec: 0.50, frac: '50/100' },
+  ];
+  
+  const correct = options[randInt(0, options.length - 1)];
+  const choices = [correct.frac];
+  
+  while (choices.length < 4) {
+    const wrong = options[randInt(0, options.length - 1)].frac;
+    if (!choices.includes(wrong)) choices.push(wrong);
+  }
+  choices.sort(() => Math.random() - 0.5);
+  
+  return {
+    type: 'fraction',
+    decimal: correct.dec,
+    answer: choices.indexOf(correct.frac),
+    choices,
+    instructions: `Write ${correct.dec} as a fraction`,
+    tip: `0.${correct.dec.toString().split('.')[1]} means ${correct.dec.toString().split('.')[1].length === 1 ? 'tenths' : 'hundredths'}`,
+  };
+}
+
+function renderPlaceChart(dec, highlightPlace) {
+  const digits = formatDecimal(dec).split('');
+  const labels = dec.whole >= 10 ? ['tens', 'ones', '', 'tenths', 'hund.'] : ['ones', '', 'tenths', 'hund.'];
+  
+  let html = '<div class="place-value-chart">';
+  let labelIdx = dec.whole >= 10 ? 0 : 0;
+  
+  for (let i = 0; i < digits.length; i++) {
+    if (digits[i] === '.') {
+      html += '<span class="decimal-point">.</span>';
+    } else {
+      const label = labels[labelIdx] || '';
+      const isHighlight = (label === 'ones' && highlightPlace === 'ones') ||
+                          (label === 'tenths' && highlightPlace === 'tenths') ||
+                          (label === 'hund.' && highlightPlace === 'hundredths');
+      html += `<div class="place-col">
+        <span class="place-label">${label}</span>
+        <span class="place-digit ${isHighlight ? 'highlight' : ''}">${digits[i]}</span>
+      </div>`;
+      labelIdx++;
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderDecimalGrid(value) {
+  const filled = Math.round(value * 100);
+  let html = '<div class="visual-grid"><div class="grid-100">';
+  for (let i = 0; i < 100; i++) {
+    html += `<div class="cell ${i < filled ? 'filled' : ''}"></div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderProblem() {
+  const topic = topics[state.topic];
+  state.problem = topic.generate();
+  state.answered = false;
+  
+  document.getElementById('problemTitle').textContent = topic.title;
+  document.getElementById('problemInstructions').innerHTML = state.problem.instructions;
+  document.getElementById('feedback').classList.add('hidden');
+  
+  const area = document.getElementById('problemArea');
+  const answer = document.getElementById('answerSection');
+  
+  if (state.problem.type === 'identify') {
+    area.innerHTML = `
+      <div class="big-number">${formatDecimal(state.problem.decimal)}</div>
+      ${renderPlaceChart(state.problem.decimal, state.problem.place)}
+    `;
+    answer.innerHTML = `
+      <div class="choices">
+        ${state.problem.choices.map((c, i) => `
+          <button class="choice-btn" onclick="checkChoice(${i})">${c}</button>
+        `).join('')}
+      </div>
+    `;
+  }
+  else if (state.problem.type === 'value') {
+    area.innerHTML = `
+      <div class="big-number">${formatDecimal(state.problem.decimal)}</div>
+      ${renderPlaceChart(state.problem.decimal, state.problem.place)}
+    `;
+    answer.innerHTML = `
+      <div class="choices">
+        ${state.problem.choices.map((c, i) => `
+          <button class="choice-btn" onclick="checkChoice(${i})">${c}</button>
+        `).join('')}
+      </div>
+    `;
+  }
+  else if (state.problem.type === 'compare') {
+    area.innerHTML = `
+      <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+        <div>
+          <div class="big-number" style="font-size: 2rem;">${formatDecimal(state.problem.d1)}</div>
+          ${renderDecimalGrid(state.problem.d1.value)}
+        </div>
+        <span style="font-size: 2rem; font-weight: 700;">?</span>
+        <div>
+          <div class="big-number" style="font-size: 2rem;">${formatDecimal(state.problem.d2)}</div>
+          ${renderDecimalGrid(state.problem.d2.value)}
+        </div>
+      </div>
+    `;
+    answer.innerHTML = `
+      <div class="choices">
+        <button class="choice-btn" onclick="checkCompare('left')">${formatDecimal(state.problem.d1)}</button>
+        <button class="choice-btn" onclick="checkCompare('right')">${formatDecimal(state.problem.d2)}</button>
+      </div>
+    `;
+  }
+  else if (state.problem.type === 'fraction') {
+    area.innerHTML = `
+      <div class="big-number">${state.problem.decimal}</div>
+      ${renderDecimalGrid(state.problem.decimal)}
+    `;
+    answer.innerHTML = `
+      <div class="choices">
+        ${state.problem.choices.map((c, i) => `
+          <button class="choice-btn" onclick="checkChoice(${i})">${c}</button>
+        `).join('')}
+      </div>
+    `;
+  }
+}
+
+function checkChoice(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  
+  const btns = document.querySelectorAll('.choice-btn');
+  const correct = idx === state.problem.answer;
+  
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[state.problem.answer].classList.add('correct');
+  
+  showFeedback(correct);
+}
+
+function checkCompare(choice) {
+  if (state.answered) return;
+  state.answered = true;
+  
+  const btns = document.querySelectorAll('.choice-btn');
+  const correct = choice === state.problem.answer;
+  const idx = choice === 'left' ? 0 : 1;
+  
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[idx === 0 ? 1 : 0].classList.add('correct');
+  
+  showFeedback(correct);
+}
+
+function showFeedback(correct) {
+  const fb = document.getElementById('feedback');
+  
+  if (correct) {
+    state.stars++;
+    state.streak++;
+    fb.textContent = '✓ Correct! ' + ['Great!', 'Awesome!', 'Perfect!'][randInt(0, 2)];
+    fb.className = 'feedback correct';
+  } else {
+    state.streak = 0;
+    fb.innerHTML = `✗ Not quite.<div class="tip-box"><strong>💡 Tip:</strong> ${state.problem.tip}</div>`;
+    fb.className = 'feedback wrong';
+  }
+  
+  fb.classList.remove('hidden');
+  updateUI();
+  
+  setTimeout(() => {
+    state.problemNum++;
+    if (state.problemNum >= PROBLEMS_PER_TOPIC) {
+      showComplete();
+    } else {
+      renderProblem();
+    }
+  }, correct ? 1200 : 2500);
+}
+
+function updateUI() {
+  document.getElementById('stars').textContent = state.stars;
+  document.getElementById('streak').textContent = state.streak;
+  document.getElementById('progressFill').style.width = 
+    ((state.problemNum + 1) / PROBLEMS_PER_TOPIC * 100) + '%';
+}
+
+function showComplete() {
+  document.getElementById('problemCard').classList.add('hidden');
+  document.getElementById('completeCard').classList.remove('hidden');
+  document.getElementById('completeMsg').textContent = 
+    `You earned ${state.stars} stars in ${topics[state.topic].title}!`;
+}
+
+function nextTopic() {
+  const topicKeys = Object.keys(topics);
+  const currentIdx = topicKeys.indexOf(state.topic);
+  
+  if (currentIdx < topicKeys.length - 1) {
+    setTopic(topicKeys[currentIdx + 1]);
+  } else {
+    document.getElementById('completeCard').querySelector('.complete-screen').innerHTML = `
+      <div class="icon">🏆</div>
+      <h2>All Complete!</h2>
+      <p>You're a decimals expert! Total stars: ${state.stars}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Play Again</button>
+    `;
+  }
+}
+
+function setTopic(topic) {
+  state.topic = topic;
+  state.problemNum = 0;
+  
+  document.querySelectorAll('.topic-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.topic === topic);
+  });
+  
+  document.getElementById('problemCard').classList.remove('hidden');
+  document.getElementById('completeCard').classList.add('hidden');
+  
+  renderProblem();
+  updateUI();
+}
+
+document.querySelectorAll('.topic-tab').forEach(tab => {
+  tab.addEventListener('click', () => setTopic(tab.dataset.topic));
+});
+
+renderProblem();
+updateUI();
+</script>
+</body>
+</html>

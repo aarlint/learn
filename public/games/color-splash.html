@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Color Splash 🎨</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HUD */
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(255,255,255,0.6);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.stat-icon { font-size: 1.3rem; }
+.stat-value { color: #d97706; }
+
+.level-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+/* Main game area */
+.game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Instruction hint */
+.instruction-hint {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #78716c;
+  margin-bottom: 8px;
+  min-height: 1.4em;
+  text-align: center;
+}
+
+/* Color word display */
+.color-word {
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+/* Paint splash grid */
+.splash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.paint-splash {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  justify-self: center;
+  transition: transform 0.15s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15), inset 0 -4px 8px rgba(0,0,0,0.1), inset 0 4px 8px rgba(255,255,255,0.3);
+}
+
+.paint-splash::after {
+  content: '';
+  position: absolute;
+  top: 18%;
+  left: 22%;
+  width: 28%;
+  height: 18%;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  transform: rotate(-30deg);
+}
+
+.paint-splash:active {
+  transform: scale(0.92);
+}
+
+/* Splash entrance animation */
+.paint-splash.entering {
+  animation: splashIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes splashIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Correct animation - splatter */
+.paint-splash.correct {
+  animation: splatCorrect 0.5s ease forwards;
+}
+
+@keyframes splatCorrect {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  60% { transform: scale(1.4); opacity: 0.7; border-radius: 45% 55% 48% 52%; }
+  100% { transform: scale(1.6); opacity: 0; border-radius: 40% 60% 45% 55%; }
+}
+
+/* Wrong animation - shake */
+.paint-splash.wrong {
+  animation: wobble 0.5s ease;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-12px) rotate(-3deg); }
+  30% { transform: translateX(10px) rotate(2deg); }
+  45% { transform: translateX(-8px) rotate(-2deg); }
+  60% { transform: translateX(6px) rotate(1deg); }
+  75% { transform: translateX(-3px); }
+}
+
+/* Splatter particles */
+.splatter-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particleFly 0.6s ease-out forwards;
+}
+
+@keyframes particleFly {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Feedback text */
+.feedback {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  font-weight: 900;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10;
+}
+
+.feedback.show {
+  animation: feedbackPop 0.8s ease both;
+}
+
+@keyframes feedbackPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  40% { transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+}
+
+/* Screens overlay */
+.screen-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 251, 235, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 20;
+  padding: 30px;
+  text-align: center;
+}
+
+.screen-overlay.hidden { display: none; }
+
+.screen-title {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #92400e;
+  margin-bottom: 16px;
+}
+
+.screen-subtitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #d97706;
+  margin-bottom: 12px;
+}
+
+.screen-text {
+  font-size: 1.15rem;
+  color: #78716c;
+  max-width: 360px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.screen-text strong {
+  color: #92400e;
+}
+
+.btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 50px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-top: 10px;
+}
+
+.btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #a8a29e, #78716c);
+  box-shadow: 0 6px 20px rgba(120, 113, 108, 0.3);
+  margin-left: 12px;
+}
+
+.star-row {
+  font-size: 2.5rem;
+  margin: 12px 0;
+  letter-spacing: 8px;
+}
+
+.results-stat {
+  font-size: 1.2rem;
+  color: #92400e;
+  font-weight: 700;
+  margin: 4px 0;
+}
+
+/* Level indicator colors */
+.level-instruction-box {
+  background: white;
+  border-radius: 20px;
+  padding: 24px 32px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  max-width: 380px;
+}
+
+.level-instruction-box .example {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin: 12px 0;
+}
+
+/* Mode indicator for level 4 */
+.mode-indicator {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.mode-indicator.mode-word {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.mode-indicator.mode-ink {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
+/* Progress dots */
+.progress-bar {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.1);
+  transition: background 0.3s;
+}
+
+.progress-dot.correct { background: #22c55e; }
+.progress-dot.wrong { background: #ef4444; }
+.progress-dot.current { background: #f59e0b; transform: scale(1.3); }
+
+@media (max-width: 480px) {
+  .color-word { font-size: 3.5rem; margin-bottom: 28px; }
+  .paint-splash { width: 90px; height: 90px; }
+  .splash-grid { gap: 14px; max-width: 340px; }
+  .screen-title { font-size: 2.2rem; }
+  .hud { padding: 10px 14px; }
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="stat">
+      <span class="stat-icon">❤️</span>
+      <span class="stat-value" id="lives">3</span>
+    </div>
+    <div class="level-badge" id="levelBadge">Level 1</div>
+    <div class="stat">
+      <span class="stat-icon">⭐</span>
+      <span class="stat-value" id="score">0</span>
+    </div>
+  </div>
+
+  <!-- Game area -->
+  <div class="game-area" id="gameArea">
+    <div class="instruction-hint" id="instructionHint"></div>
+    <div class="color-word" id="colorWord">RED</div>
+    <div class="splash-grid" id="splashGrid"></div>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="feedback" id="feedback"></div>
+
+    <!-- Start screen -->
+    <div class="screen-overlay" id="startScreen">
+      <div class="screen-title">🎨 Color Splash</div>
+      <div class="screen-subtitle">A Color Reading Game</div>
+      <div class="screen-text">
+        Read the color words and tap the matching paint splash!
+      </div>
+      <button class="btn" onclick="startGame()">Let's Paint!</button>
+    </div>
+
+    <!-- Level intro screen -->
+    <div class="screen-overlay hidden" id="levelScreen">
+      <div class="screen-subtitle" id="levelScreenTitle">Level 1</div>
+      <div class="level-instruction-box" id="levelInstructionBox">
+        <div class="screen-text" id="levelInstructionText"></div>
+        <div class="example" id="levelExample"></div>
+      </div>
+      <button class="btn" onclick="startLevel()">Ready!</button>
+    </div>
+
+    <!-- Game over screen -->
+    <div class="screen-overlay hidden" id="gameOverScreen">
+      <div class="screen-title" id="gameOverTitle">Nice Try!</div>
+      <div class="star-row" id="gameOverStars"></div>
+      <div class="results-stat" id="gameOverScore"></div>
+      <div class="results-stat" id="gameOverLevel"></div>
+      <div style="display:flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center;">
+        <button class="btn" onclick="startGame()">Play Again</button>
+      </div>
+    </div>
+
+    <!-- Level complete screen -->
+    <div class="screen-overlay hidden" id="levelCompleteScreen">
+      <div class="screen-title">🎉 Level Complete!</div>
+      <div class="star-row" id="levelStars"></div>
+      <div class="results-stat" id="levelScore"></div>
+      <button class="btn" onclick="showLevelIntro()">Next Level</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  { name: 'RED',    hex: '#ef4444' },
+  { name: 'BLUE',   hex: '#3b82f6' },
+  { name: 'GREEN',  hex: '#22c55e' },
+  { name: 'YELLOW', hex: '#eab308' },
+  { name: 'ORANGE', hex: '#f97316' },
+  { name: 'PURPLE', hex: '#a855f7' },
+];
+
+const ROUNDS_PER_LEVEL = 12;
+const MAX_LEVEL = 4;
+
+let state = {
+  level: 1,
+  round: 0,
+  score: 0,
+  lives: 3,
+  roundResults: [],
+  locked: false,
+  currentWord: null,
+  currentInkColor: null,
+  currentMode: 'word', // 'word' or 'ink'
+  levelScore: 0,
+};
+
+// ---- Utilities ----
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickExcluding(arr, excludeIndex) {
+  let idx;
+  do { idx = Math.floor(Math.random() * arr.length); } while (idx === excludeIndex);
+  return idx;
+}
+
+// ---- Screen management ----
+
+function showScreen(id) {
+  ['startScreen', 'levelScreen', 'gameOverScreen', 'levelCompleteScreen'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+function hideAllScreens() {
+  ['startScreen', 'levelScreen', 'gameOverScreen', 'levelCompleteScreen'].forEach(s => {
+    document.getElementById(s).classList.add('hidden');
+  });
+}
+
+// ---- Game flow ----
+
+function startGame() {
+  state.level = 1;
+  state.score = 0;
+  state.lives = 3;
+  updateHUD();
+  showLevelIntro();
+}
+
+function showLevelIntro() {
+  state.round = 0;
+  state.roundResults = [];
+  state.levelScore = 0;
+
+  const titleEl = document.getElementById('levelScreenTitle');
+  const textEl = document.getElementById('levelInstructionText');
+  const exEl = document.getElementById('levelExample');
+
+  titleEl.textContent = `Level ${state.level}`;
+  document.getElementById('levelBadge').textContent = `Level ${state.level}`;
+
+  if (state.level === 1) {
+    textEl.innerHTML = 'Read the color word and tap the matching paint splash!<br><br><strong>The word and its color will match.</strong>';
+    exEl.innerHTML = `<span style="color:#ef4444">RED</span>`;
+  } else if (state.level === 2) {
+    textEl.innerHTML = 'Now the word might be a <strong>different color</strong>!<br><br>Tap the color the word <strong>SAYS</strong>, not the color it looks like.';
+    exEl.innerHTML = `<span style="color:#3b82f6">RED</span> → tap the <span style="color:#ef4444">red</span> splash`;
+  } else if (state.level === 3) {
+    textEl.innerHTML = 'Tricky! Now tap the color the word is <strong>WRITTEN IN</strong>.<br><br>Ignore what the word says!';
+    exEl.innerHTML = `<span style="color:#3b82f6">RED</span> → tap the <span style="color:#3b82f6">blue</span> splash`;
+  } else if (state.level === 4) {
+    textEl.innerHTML = 'Watch the hint at the top! Sometimes you match the <strong>word</strong>, sometimes the <strong>ink color</strong>.';
+    exEl.innerHTML = `🤔 Read carefully!`;
+  }
+
+  showScreen('levelScreen');
+}
+
+function startLevel() {
+  hideAllScreens();
+  buildProgressBar();
+  nextRound();
+}
+
+function nextRound() {
+  if (state.round >= ROUNDS_PER_LEVEL) {
+    levelComplete();
+    return;
+  }
+
+  state.locked = false;
+
+  // Decide word and ink color
+  const wordIndex = Math.floor(Math.random() * COLORS.length);
+  let inkIndex = wordIndex;
+
+  if (state.level === 1) {
+    // Word and ink always match
+    inkIndex = wordIndex;
+    state.currentMode = 'word';
+  } else if (state.level === 2) {
+    // Sometimes mismatch, match the WORD
+    if (Math.random() < 0.5) {
+      inkIndex = pickExcluding(COLORS, wordIndex);
+    }
+    state.currentMode = 'word';
+  } else if (state.level === 3) {
+    // Always mismatch, match the INK
+    inkIndex = pickExcluding(COLORS, wordIndex);
+    state.currentMode = 'ink';
+  } else if (state.level === 4) {
+    // Mix: random mode, usually mismatch
+    state.currentMode = Math.random() < 0.5 ? 'word' : 'ink';
+    if (Math.random() < 0.65) {
+      inkIndex = pickExcluding(COLORS, wordIndex);
+    }
+  }
+
+  state.currentWord = wordIndex;
+  state.currentInkColor = inkIndex;
+
+  const correctIndex = state.currentMode === 'word' ? wordIndex : inkIndex;
+
+  // Set the word display
+  const wordEl = document.getElementById('colorWord');
+  wordEl.textContent = COLORS[wordIndex].name;
+  wordEl.style.color = COLORS[inkIndex].hex;
+
+  // Set instruction hint
+  const hintEl = document.getElementById('instructionHint');
+  if (state.level === 1) {
+    hintEl.textContent = 'Tap the matching color!';
+  } else if (state.level === 2) {
+    hintEl.textContent = 'Tap what the word SAYS';
+  } else if (state.level === 3) {
+    hintEl.textContent = 'Tap the INK color';
+  } else if (state.level === 4) {
+    if (state.currentMode === 'word') {
+      hintEl.innerHTML = '<span class="mode-indicator mode-word">📖 Match the WORD</span>';
+    } else {
+      hintEl.innerHTML = '<span class="mode-indicator mode-ink">🖌️ Match the INK</span>';
+    }
+  }
+
+  // Build splash grid - all 6 colors, shuffled
+  const grid = document.getElementById('splashGrid');
+  grid.innerHTML = '';
+
+  const shuffled = shuffle(COLORS.map((c, i) => i));
+
+  shuffled.forEach((colorIdx, i) => {
+    const splash = document.createElement('div');
+    splash.className = 'paint-splash entering';
+    splash.style.backgroundColor = COLORS[colorIdx].hex;
+    splash.style.animationDelay = `${i * 0.06}s`;
+    splash.dataset.colorIndex = colorIdx;
+    splash.addEventListener('click', () => handleTap(splash, colorIdx, correctIndex));
+    splash.addEventListener('touchend', (e) => { e.preventDefault(); handleTap(splash, colorIdx, correctIndex); });
+    grid.appendChild(splash);
+  });
+
+  updateProgressBar();
+}
+
+function handleTap(el, tappedIndex, correctIndex) {
+  if (state.locked) return;
+  state.locked = true;
+
+  if (tappedIndex === correctIndex) {
+    // Correct!
+    const points = 10 + (state.level * 5);
+    state.score += points;
+    state.levelScore += points;
+    state.roundResults.push(true);
+
+    showFeedback('✓ Nice!', '#22c55e');
+    spawnSplatterParticles(el);
+    el.classList.add('correct');
+
+    setTimeout(() => {
+      state.round++;
+      updateHUD();
+      nextRound();
+    }, 700);
+
+  } else {
+    // Wrong
+    state.lives--;
+    state.roundResults.push(false);
+
+    el.classList.add('wrong');
+    showFeedback('✗ Oops!', '#ef4444');
+
+    // Highlight correct one briefly
+    const grid = document.getElementById('splashGrid');
+    const splashes = grid.querySelectorAll('.paint-splash');
+    setTimeout(() => {
+      splashes.forEach(s => {
+        if (parseInt(s.dataset.colorIndex) === correctIndex) {
+          s.style.outline = '4px solid white';
+          s.style.outlineOffset = '4px';
+          s.style.transform = 'scale(1.15)';
+        }
+      });
+    }, 300);
+
+    setTimeout(() => {
+      updateHUD();
+      if (state.lives <= 0) {
+        gameOver();
+      } else {
+        state.round++;
+        nextRound();
+      }
+    }, 1200);
+  }
+}
+
+function showFeedback(text, color) {
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.style.color = color;
+  el.className = 'feedback show';
+  setTimeout(() => { el.className = 'feedback'; }, 800);
+}
+
+function spawnSplatterParticles(sourceEl) {
+  const rect = sourceEl.getBoundingClientRect();
+  const gameRect = document.getElementById('gameArea').getBoundingClientRect();
+  const cx = rect.left + rect.width / 2 - gameRect.left;
+  const cy = rect.top + rect.height / 2 - gameRect.top;
+  const color = sourceEl.style.backgroundColor;
+
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'splatter-particle';
+    const size = 10 + Math.random() * 18;
+    const angle = (Math.PI * 2 / 8) * i + (Math.random() - 0.5) * 0.5;
+    const dist = 50 + Math.random() * 60;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+
+    p.style.cssText = `
+      width: ${size}px; height: ${size}px;
+      background: ${color};
+      left: ${cx - size/2}px;
+      top: ${cy - size/2}px;
+      animation-name: particleFly;
+    `;
+    // Override animation with dynamic translate
+    p.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: `translate(${tx}px, ${ty}px) scale(0.3)`, opacity: 0 }
+    ], { duration: 500, easing: 'ease-out', fill: 'forwards' });
+
+    document.getElementById('gameArea').appendChild(p);
+    setTimeout(() => p.remove(), 600);
+  }
+}
+
+// ---- Progress bar ----
+
+function buildProgressBar() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  for (let i = 0; i < ROUNDS_PER_LEVEL; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot';
+    dot.id = `pdot-${i}`;
+    bar.appendChild(dot);
+  }
+}
+
+function updateProgressBar() {
+  for (let i = 0; i < ROUNDS_PER_LEVEL; i++) {
+    const dot = document.getElementById(`pdot-${i}`);
+    if (!dot) continue;
+    dot.className = 'progress-dot';
+    if (i < state.roundResults.length) {
+      dot.classList.add(state.roundResults[i] ? 'correct' : 'wrong');
+    } else if (i === state.round) {
+      dot.classList.add('current');
+    }
+  }
+}
+
+// ---- HUD ----
+
+function updateHUD() {
+  document.getElementById('lives').textContent = state.lives;
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('levelBadge').textContent = `Level ${state.level}`;
+}
+
+// ---- End screens ----
+
+function levelComplete() {
+  const correct = state.roundResults.filter(r => r).length;
+  const stars = correct >= 11 ? 3 : correct >= 8 ? 2 : 1;
+
+  document.getElementById('levelStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  document.getElementById('levelScore').textContent = `${correct} / ${ROUNDS_PER_LEVEL} correct`;
+
+  if (state.level >= MAX_LEVEL) {
+    // Game beaten!
+    document.getElementById('gameOverTitle').textContent = '🎨 You finished!';
+    const totalStars = stars;
+    document.getElementById('gameOverStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+    document.getElementById('gameOverScore').textContent = `Score: ${state.score}`;
+    document.getElementById('gameOverLevel').textContent = `All 4 levels complete!`;
+    showScreen('gameOverScreen');
+    return;
+  }
+
+  showScreen('levelCompleteScreen');
+  state.level++;
+}
+
+function gameOver() {
+  document.getElementById('gameOverTitle').textContent = 'Nice Try!';
+  const correct = state.roundResults.filter(r => r).length;
+  const stars = correct >= 10 ? 3 : correct >= 6 ? 2 : correct >= 3 ? 1 : 0;
+  document.getElementById('gameOverStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  document.getElementById('gameOverScore').textContent = `Score: ${state.score}`;
+  document.getElementById('gameOverLevel').textContent = `Reached Level ${state.level}`;
+  showScreen('gameOverScreen');
+}
+
+// ---- Init ----
+updateHUD();
+</script>
+</body>
+</html>

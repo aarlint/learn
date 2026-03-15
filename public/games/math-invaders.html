@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Math Invaders 👾</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0a0a1a;
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(139, 92, 246, 0.2);
+  border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
+}
+
+.hud-group {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.stat-icon { font-size: 1.2rem; }
+.stat-value { color: #a78bfa; }
+
+.wave-badge {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.feedback {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  font-weight: 800;
+  z-index: 20;
+  pointer-events: none;
+  animation: popIn 0.6s ease-out forwards;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.feedback.hit { color: #22c55e; }
+.feedback.miss { color: #ef4444; }
+.feedback.combo { color: #fbbf24; font-size: 3rem; }
+
+@keyframes popIn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  40% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-30px); }
+}
+
+/* Question panel */
+.question-panel {
+  background: rgba(0,0,0,0.85);
+  border-top: 2px solid rgba(139, 92, 246, 0.5);
+  padding: 14px 16px;
+  flex-shrink: 0;
+}
+
+.question-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+  min-height: 2rem;
+}
+
+.answer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.answer-btn {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  border: 2px solid #4b5563;
+  color: white;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.answer-btn:active {
+  transform: scale(0.95);
+}
+
+.answer-btn.correct {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  border-color: #22c55e !important;
+}
+
+.answer-btn.wrong {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-color: #ef4444 !important;
+}
+
+.answer-btn.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  border-radius: 24px;
+  padding: 32px 40px;
+  text-align: center;
+  color: white;
+  max-width: 90%;
+  width: 360px;
+}
+
+.modal h2 { font-size: 2rem; margin-bottom: 8px; }
+.modal .stars { font-size: 2.5rem; margin: 16px 0; }
+.modal p { color: rgba(255,255,255,0.7); margin-bottom: 20px; line-height: 1.5; }
+
+.modal button {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.modal button:active { transform: scale(0.95); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="hud">
+    <div class="hud-group">
+      <div class="stat">
+        <span class="stat-icon">⭐</span>
+        <span class="stat-value" id="score">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-icon">🔥</span>
+        <span id="combo">0</span>x
+      </div>
+    </div>
+    <div class="wave-badge">Wave <span id="wave">1</span></div>
+    <div class="hud-group">
+      <div class="stat">
+        <span class="stat-icon">👾</span>
+        <span id="remaining">0</span>
+      </div>
+      <div class="stat" id="shieldDisplay">
+        <span id="shields">🛡️🛡️🛡️</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="game"></canvas>
+    <div id="feedback" class="feedback hidden"></div>
+  </div>
+
+  <div class="question-panel">
+    <div class="question-text" id="question">Loading...</div>
+    <div class="answer-grid" id="answers">
+      <button class="answer-btn">-</button>
+      <button class="answer-btn">-</button>
+      <button class="answer-btn">-</button>
+      <button class="answer-btn">-</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="modalTitle">Wave Complete!</h2>
+    <div class="stars" id="modalStars">⭐⭐⭐</div>
+    <p id="modalText">Great job defending Earth!</p>
+    <button id="modalBtn">Next Wave →</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// ─── Game State ───
+let score = 0;
+let wave = 1;
+let shieldCount = 3;
+let combo = 0;
+let maxCombo = 0;
+let invadersDestroyed = 0;
+let questionsAnswered = 0;
+let gameRunning = true;
+let answering = true;       // can player answer?
+let targetInvader = null;    // which invader the laser aims at
+
+// ─── Game Objects ───
+let ship = { x: 0, y: 0, width: 50, height: 30 };
+let invaders = [];
+let lasers = [];
+let explosions = [];
+let bgStars = [];
+let shakeTimer = 0;
+
+// ─── Invader Formation ───
+let formationDir = 1;           // 1 = right, -1 = left
+let formationSpeed = 0.3;       // base horizontal speed
+let formationDropTimer = 0;     // countdown to next drop
+let formationDropAmount = 0;    // pixels per drop (set per wave)
+let formationDropInterval = 0;  // seconds between drops (set per wave)
+
+// ─── Question ───
+let currentQuestion = null;
+let correctAnswer = 0;
+
+// ─── Resize ───
+function resize() {
+  const wrapper = canvas.parentElement;
+  canvas.width = wrapper.clientWidth * window.devicePixelRatio;
+  canvas.height = wrapper.clientHeight * window.devicePixelRatio;
+  ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+
+  const w = canvas.width / window.devicePixelRatio;
+  const h = canvas.height / window.devicePixelRatio;
+  ship.x = w / 2;
+  ship.y = h - 30;
+
+  // Create background stars
+  bgStars = [];
+  for (let i = 0; i < 80; i++) {
+    bgStars.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      size: Math.random() * 2 + 0.5,
+      speed: Math.random() * 0.3 + 0.1,
+      twinkle: Math.random() * Math.PI * 2
+    });
+  }
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ─── Question Generation ───
+function generateQuestion() {
+  let a, b, op, answer;
+
+  if (wave <= 2) {
+    a = Math.floor(Math.random() * 10) + 1;
+    b = Math.floor(Math.random() * 10) + 1;
+    op = '+';
+    answer = a + b;
+  } else if (wave <= 4) {
+    a = Math.floor(Math.random() * 15) + 5;
+    b = Math.floor(Math.random() * Math.min(a, 10)) + 1;
+    op = Math.random() < 0.5 ? '+' : '−';
+    answer = op === '+' ? a + b : a - b;
+  } else if (wave <= 6) {
+    a = Math.floor(Math.random() * 10) + 1;
+    b = Math.floor(Math.random() * 10) + 1;
+    op = '×';
+    answer = a * b;
+  } else {
+    const ops = ['+', '−', '×'];
+    op = ops[Math.floor(Math.random() * ops.length)];
+    if (op === '×') {
+      a = Math.floor(Math.random() * 12) + 1;
+      b = Math.floor(Math.random() * 12) + 1;
+      answer = a * b;
+    } else {
+      a = Math.floor(Math.random() * 50) + 10;
+      b = Math.floor(Math.random() * 30) + 1;
+      if (op === '−' && b > a) [a, b] = [b, a];
+      answer = op === '+' ? a + b : a - b;
+    }
+  }
+
+  currentQuestion = `${a} ${op} ${b} = ?`;
+  correctAnswer = answer;
+
+  // Generate wrong choices that are plausible
+  const choices = new Set([answer]);
+  const strategies = [
+    () => answer + 1,
+    () => answer - 1,
+    () => answer + 2,
+    () => answer - 2,
+    () => answer + 10,
+    () => answer - 10,
+    () => answer + Math.floor(Math.random() * 5) + 1,
+    () => answer - Math.floor(Math.random() * 5) + 1,
+  ];
+
+  let attempts = 0;
+  while (choices.size < 4 && attempts < 50) {
+    const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+    const wrong = strategy();
+    if (wrong >= 0 && wrong !== answer) {
+      choices.add(wrong);
+    }
+    attempts++;
+  }
+  // Fallback
+  while (choices.size < 4) {
+    const w = answer + choices.size * 3;
+    choices.add(w);
+  }
+
+  const choiceArr = [...choices];
+  // Shuffle
+  for (let i = choiceArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [choiceArr[i], choiceArr[j]] = [choiceArr[j], choiceArr[i]];
+  }
+
+  // Pick which invader the laser will target (lowest alive)
+  pickTarget();
+
+  // Update UI
+  document.getElementById('question').textContent = currentQuestion;
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach((btn, i) => {
+    btn.textContent = choiceArr[i];
+    btn.className = 'answer-btn';
+  });
+  answering = true;
+}
+
+// Pick the frontmost (lowest) alive invader as target
+function pickTarget() {
+  targetInvader = null;
+  let bestY = -1;
+  for (const inv of invaders) {
+    if (inv.alive && inv.y > bestY) {
+      bestY = inv.y;
+      targetInvader = inv;
+    }
+  }
+}
+
+// ─── Spawn Wave ───
+function spawnWave() {
+  invaders = [];
+  const w = canvas.width / window.devicePixelRatio;
+
+  // Grid grows fast: more columns, more rows
+  const cols = Math.min(3 + wave, 8);
+  const rows = Math.min(1 + Math.ceil(wave / 2), 5);
+  invadersDestroyed = 0;
+  questionsAnswered = 0;
+
+  const spacing = Math.min(60, (w - 80) / cols);
+  const startX = (w - (cols - 1) * spacing) / 2;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      invaders.push({
+        x: startX + c * spacing,
+        y: 35 + r * 44,
+        baseX: startX + c * spacing,
+        width: 36,
+        height: 28,
+        type: r % 3,
+        alive: true,
+        flash: 0,
+        bobPhase: (r + c) * 0.5,
+        deathAnim: 0
+      });
+    }
+  }
+
+  // Formation gets significantly faster each wave
+  formationDir = 1;
+  formationSpeed = 0.15 + wave * 0.08;                       // much slower horizontal movement
+  formationDropAmount = 6 + wave;                            // gentler drops
+  formationDropInterval = Math.max(2.0, 5.0 - wave * 0.4);   // longer between drops
+  formationDropTimer = formationDropInterval;
+
+  generateQuestion();
+  updateHUD();
+}
+
+// ─── Fire Laser ───
+function fireLaser(target, onHit) {
+  if (!target || !target.alive) {
+    // Target already dead — skip laser, just advance
+    if (onHit) onHit();
+    return;
+  }
+
+  lasers.push({
+    x: ship.x,
+    y: ship.y - 20,
+    targetX: target.x,
+    targetY: target.y,
+    target: target,
+    speed: 14,
+    width: 4,
+    height: 18,
+    trail: [],
+    onHit: onHit || null
+  });
+}
+
+// ─── Explosions ───
+function createExplosion(x, y, color, count = 16) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+    const speed = 2 + Math.random() * 5;
+    explosions.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      radius: 2 + Math.random() * 5,
+      color,
+      life: 1
+    });
+  }
+}
+
+// ─── Feedback ───
+let feedbackId = 0;
+function showFeedback(text, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.className = 'feedback ' + type;
+  const id = ++feedbackId;
+  setTimeout(() => {
+    if (feedbackId === id) el.classList.add('hidden');
+  }, 600);
+}
+
+// ─── Handle Answer ───
+function handleAnswer(answer) {
+  if (!gameRunning || !answering) return;
+  answering = false;
+  questionsAnswered++;
+
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(btn => {
+    if (parseInt(btn.textContent) === correctAnswer) {
+      btn.classList.add('correct');
+    } else if (parseInt(btn.textContent) === answer && answer !== correctAnswer) {
+      btn.classList.add('wrong');
+    }
+    btn.classList.add('disabled');
+  });
+
+  if (answer === correctAnswer) {
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+
+    const points = 10 * (1 + Math.floor(combo / 3));
+    score += points;
+
+    if (combo >= 3 && combo % 3 === 0) {
+      showFeedback(`${combo}x COMBO!`, 'combo');
+    } else {
+      showFeedback('+' + points, 'hit');
+    }
+
+    // Fire at the target invader — advance to next question when laser hits
+    fireLaser(targetInvader, () => {
+      if (!gameRunning) return;
+      const aliveCount = invaders.filter(i => i.alive).length;
+      if (aliveCount <= 0) {
+        setTimeout(waveComplete, 400);
+      } else {
+        generateQuestion();
+      }
+      updateHUD();
+    });
+  } else {
+    combo = 0;
+    shieldCount--;
+    shakeTimer = 12;
+    showFeedback('Wrong!', 'miss');
+
+    if (shieldCount <= 0) {
+      setTimeout(gameOver, 600);
+    } else {
+      setTimeout(() => {
+        if (!gameRunning) return;
+        generateQuestion();
+        updateHUD();
+      }, 700);
+    }
+    updateHUD();
+  }
+}
+
+// ─── HUD ───
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('wave').textContent = wave;
+  document.getElementById('combo').textContent = combo;
+  document.getElementById('remaining').textContent = invaders.filter(i => i.alive).length;
+
+  let shieldStr = '';
+  for (let i = 0; i < 3; i++) {
+    shieldStr += i < shieldCount ? '🛡️' : '💔';
+  }
+  document.getElementById('shields').textContent = shieldStr;
+}
+
+// ─── Wave Complete ───
+function waveComplete() {
+  gameRunning = false;
+
+  const modal = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = `Wave ${wave} Complete!`;
+  const starCount = shieldCount >= 3 ? 3 : shieldCount >= 2 ? 2 : 1;
+  document.getElementById('modalStars').textContent = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
+  document.getElementById('modalText').textContent =
+    `Destroyed ${invadersDestroyed} invaders!\nMax combo: ${maxCombo}x`;
+  document.getElementById('modalBtn').textContent = 'Next Wave →';
+
+  score += shieldCount * 50 + wave * 25;
+  updateHUD();
+  modal.classList.remove('hidden');
+}
+
+// ─── Game Over ───
+function gameOver() {
+  gameRunning = false;
+
+  const modal = document.getElementById('modal');
+  document.getElementById('modalTitle').textContent = 'Game Over!';
+  document.getElementById('modalStars').textContent = '💥';
+  document.getElementById('modalText').textContent =
+    `Final score: ${score}\nYou reached wave ${wave}!`;
+  document.getElementById('modalBtn').textContent = 'Try Again';
+  modal.classList.remove('hidden');
+}
+
+// ─── Next Wave / Restart ───
+function nextWave(restart = false) {
+  if (restart) {
+    wave = 1;
+    score = 0;
+    shieldCount = 3;
+  } else {
+    wave++;
+    shieldCount = Math.min(shieldCount + 1, 3);
+  }
+
+  combo = 0;
+  maxCombo = 0;
+  lasers = [];
+  explosions = [];
+  gameRunning = true;
+  spawnWave();
+  document.getElementById('modal').classList.add('hidden');
+}
+
+// ─── Event Listeners ───
+document.getElementById('answers').addEventListener('click', (e) => {
+  if (e.target.classList.contains('answer-btn') && !e.target.classList.contains('disabled')) {
+    handleAnswer(parseInt(e.target.textContent));
+  }
+});
+
+document.getElementById('modalBtn').addEventListener('click', () => {
+  const btn = document.getElementById('modalBtn');
+  nextWave(btn.textContent.includes('Try Again'));
+});
+
+document.addEventListener('keydown', (e) => {
+  if (!gameRunning || !answering) return;
+  if (e.key >= '1' && e.key <= '4') {
+    const btns = document.querySelectorAll('.answer-btn');
+    const idx = parseInt(e.key) - 1;
+    if (btns[idx] && !btns[idx].classList.contains('disabled')) {
+      handleAnswer(parseInt(btns[idx].textContent));
+    }
+  }
+});
+
+// ─── Drawing ───
+
+function drawShip(x, y) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Glow
+  ctx.shadowColor = '#60a5fa';
+  ctx.shadowBlur = 20;
+
+  // Wings
+  ctx.fillStyle = '#2563eb';
+  ctx.beginPath();
+  ctx.moveTo(-ship.width / 2 - 5, ship.height / 2 + 2);
+  ctx.lineTo(-ship.width / 2 + 8, -5);
+  ctx.lineTo(-ship.width / 2 + 14, ship.height / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(ship.width / 2 + 5, ship.height / 2 + 2);
+  ctx.lineTo(ship.width / 2 - 8, -5);
+  ctx.lineTo(ship.width / 2 - 14, ship.height / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#3b82f6';
+  ctx.beginPath();
+  ctx.moveTo(0, -ship.height / 2 - 4);
+  ctx.lineTo(-16, ship.height / 2);
+  ctx.lineTo(16, ship.height / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Cockpit
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#93c5fd';
+  ctx.beginPath();
+  ctx.ellipse(0, 2, 6, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Engine glow
+  const flicker = Math.random() * 6;
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.moveTo(-8, ship.height / 2);
+  ctx.lineTo(8, ship.height / 2);
+  ctx.lineTo(0, ship.height / 2 + 12 + flicker);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#f97316';
+  ctx.beginPath();
+  ctx.moveTo(-4, ship.height / 2);
+  ctx.lineTo(4, ship.height / 2);
+  ctx.lineTo(0, ship.height / 2 + 8 + flicker * 0.6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawInvader(inv) {
+  if (!inv.alive) return;
+
+  const bob = Math.sin(Date.now() * 0.003 + inv.bobPhase) * 3;
+
+  ctx.save();
+  ctx.translate(inv.x, inv.y + bob);
+
+  if (inv.flash > 0) {
+    ctx.globalAlpha = 0.6 + inv.flash * 0.4;
+    inv.flash -= 0.05;
+  }
+
+  const colors = ['#ef4444', '#22c55e', '#8b5cf6'];
+  const glowColors = ['rgba(239,68,68,0.4)', 'rgba(34,197,94,0.4)', 'rgba(139,92,246,0.4)'];
+  const c = colors[inv.type];
+
+  // Glow
+  ctx.shadowColor = c;
+  ctx.shadowBlur = 12;
+
+  // Head
+  ctx.fillStyle = c;
+  ctx.beginPath();
+  ctx.roundRect(-inv.width / 2, -inv.height / 2, inv.width, inv.height * 0.65, 6);
+  ctx.fill();
+
+  // Antennae
+  ctx.strokeStyle = c;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-8, -inv.height / 2);
+  ctx.lineTo(-12, -inv.height / 2 - 10);
+  ctx.moveTo(8, -inv.height / 2);
+  ctx.lineTo(12, -inv.height / 2 - 10);
+  ctx.stroke();
+
+  // Antenna tips
+  ctx.fillStyle = '#fbbf24';
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.arc(-12, -inv.height / 2 - 10, 3, 0, Math.PI * 2);
+  ctx.arc(12, -inv.height / 2 - 10, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.ellipse(-8, -4, 6, 7, 0, 0, Math.PI * 2);
+  ctx.ellipse(8, -4, 6, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pupils (look toward ship)
+  ctx.fillStyle = '#000';
+  const lookX = ship.x > inv.x ? 1.5 : ship.x < inv.x ? -1.5 : 0;
+  ctx.beginPath();
+  ctx.arc(-8 + lookX, -3, 3, 0, Math.PI * 2);
+  ctx.arc(8 + lookX, -3, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Mouth (mean grin)
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 4, 7, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+
+  // Legs (animated wiggle)
+  const legWiggle = Math.sin(Date.now() * 0.005 + inv.bobPhase) * 3;
+  ctx.fillStyle = c;
+  ctx.shadowBlur = 0;
+  // Left leg
+  ctx.fillRect(-inv.width / 2 + 3, inv.height * 0.15, 6, 10 + legWiggle);
+  // Right leg
+  ctx.fillRect(inv.width / 2 - 9, inv.height * 0.15, 6, 10 - legWiggle);
+  // Middle leg
+  ctx.fillRect(-3, inv.height * 0.15, 6, 8);
+
+  // Highlight if targeted
+  if (inv === targetInvader && answering) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(0, 0, inv.width / 2 + 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.restore();
+}
+
+function drawLaser(laser) {
+  // Trail particles
+  laser.trail.forEach((pt, i) => {
+    const alpha = (i / laser.trail.length) * 0.5;
+    ctx.fillStyle = `rgba(34, 197, 94, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Laser bolt
+  ctx.shadowColor = '#22c55e';
+  ctx.shadowBlur = 15;
+
+  // Outer glow
+  ctx.fillStyle = 'rgba(34,197,94,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(laser.x, laser.y, 6, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Core
+  ctx.fillStyle = '#4ade80';
+  ctx.fillRect(laser.x - laser.width / 2, laser.y - laser.height / 2, laser.width, laser.height);
+
+  // Bright center
+  ctx.fillStyle = '#bbf7d0';
+  ctx.fillRect(laser.x - 1, laser.y - laser.height / 2, 2, laser.height);
+
+  ctx.shadowBlur = 0;
+}
+
+// ─── Update ───
+let lastTime = 0;
+
+function update(dt) {
+  if (!gameRunning) return;
+
+  const h = canvas.height / window.devicePixelRatio;
+  const w = canvas.width / window.devicePixelRatio;
+
+  // Screen shake decay
+  if (shakeTimer > 0) shakeTimer--;
+
+  // Update background stars
+  bgStars.forEach(star => {
+    star.y += star.speed;
+    star.twinkle += 0.02;
+    if (star.y > h) {
+      star.y = 0;
+      star.x = Math.random() * w;
+    }
+  });
+
+  // ─── Ship follows target horizontally ───
+  if (targetInvader && targetInvader.alive) {
+    const dx = targetInvader.x - ship.x;
+    const shipSpeed = 3 + wave * 0.3; // ship tracks faster to keep up at higher waves
+    if (Math.abs(dx) > 2) {
+      ship.x += Math.sign(dx) * Math.min(shipSpeed, Math.abs(dx));
+    }
+  }
+  // Clamp ship to screen
+  ship.x = Math.max(ship.width / 2 + 10, Math.min(w - ship.width / 2 - 10, ship.x));
+
+  // ─── Invader Formation Movement ───
+  // Horizontal sway
+  let leftMost = w, rightMost = 0;
+  invaders.forEach(inv => {
+    if (inv.alive) {
+      leftMost = Math.min(leftMost, inv.x - inv.width / 2);
+      rightMost = Math.max(rightMost, inv.x + inv.width / 2);
+    }
+  });
+
+  const margin = 20;
+  if (rightMost >= w - margin && formationDir > 0) {
+    formationDir = -1;
+  } else if (leftMost <= margin && formationDir < 0) {
+    formationDir = 1;
+  }
+
+  invaders.forEach(inv => {
+    if (inv.alive) {
+      inv.x += formationDir * formationSpeed;
+    }
+  });
+
+  // Drop formation down periodically
+  formationDropTimer -= dt;
+  if (formationDropTimer <= 0) {
+    formationDropTimer = formationDropInterval;
+    invaders.forEach(inv => {
+      if (inv.alive) {
+        inv.y += formationDropAmount;
+      }
+    });
+    // Speed up horizontally after each drop (gentle ramp)
+    formationSpeed += 0.03 + wave * 0.01;
+  }
+
+  // ─── Check if invaders reached the bottom ───
+  for (const inv of invaders) {
+    if (inv.alive && inv.y > ship.y - 40) {
+      // Invaders reached Earth - game over
+      shakeTimer = 20;
+      createExplosion(ship.x, ship.y, '#ef4444', 30);
+      createExplosion(ship.x, ship.y, '#fbbf24', 20);
+      shieldCount = 0;
+      updateHUD();
+      setTimeout(gameOver, 500);
+      gameRunning = false;
+      return;
+    }
+  }
+
+  // ─── Update Lasers ───
+  lasers = lasers.filter(laser => {
+    // Save trail
+    laser.trail.push({ x: laser.x, y: laser.y });
+    if (laser.trail.length > 12) laser.trail.shift();
+
+    // Move toward target (homing)
+    const tgt = laser.target;
+    if (tgt && tgt.alive) {
+      const dx = tgt.x - laser.x;
+      const dy = tgt.y - laser.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 20) {
+        // HIT!
+        tgt.alive = false;
+        tgt.deathAnim = 1;
+        invadersDestroyed++;
+        createExplosion(tgt.x, tgt.y, '#fbbf24', 20);
+        createExplosion(tgt.x, tgt.y, '#ef4444', 10);
+        // Notify callback so next question loads
+        if (laser.onHit) {
+          setTimeout(laser.onHit, 250);
+        }
+        return false;
+      }
+
+      // Normalize and move
+      laser.x += (dx / dist) * laser.speed;
+      laser.y += (dy / dist) * laser.speed;
+    } else {
+      // Target already dead — fly straight up, then trigger callback
+      laser.y -= laser.speed;
+      if (laser.y < -30) {
+        if (laser.onHit) setTimeout(laser.onHit, 100);
+        return false;
+      }
+    }
+
+    return laser.y > -20;
+  });
+
+  // ─── Update Explosions ───
+  explosions = explosions.filter(exp => {
+    exp.x += exp.vx;
+    exp.y += exp.vy;
+    exp.vy += 0.08;
+    exp.vx *= 0.98;
+    exp.life -= 0.02;
+    return exp.life > 0;
+  });
+}
+
+// ─── Draw ───
+function draw() {
+  const w = canvas.width / window.devicePixelRatio;
+  const h = canvas.height / window.devicePixelRatio;
+
+  ctx.save();
+
+  // Screen shake
+  if (shakeTimer > 0) {
+    const intensity = shakeTimer * 0.5;
+    ctx.translate(
+      (Math.random() - 0.5) * intensity,
+      (Math.random() - 0.5) * intensity
+    );
+  }
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#05051a');
+  grad.addColorStop(0.5, '#0a0a2e');
+  grad.addColorStop(1, '#0f0f35');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Stars with twinkle
+  bgStars.forEach(star => {
+    const alpha = 0.3 + Math.sin(star.twinkle) * 0.3;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Earth glow at bottom
+  const earthGlow = ctx.createRadialGradient(w / 2, h + 80, 20, w / 2, h + 80, 200);
+  earthGlow.addColorStop(0, 'rgba(59, 130, 246, 0.15)');
+  earthGlow.addColorStop(1, 'rgba(59, 130, 246, 0)');
+  ctx.fillStyle = earthGlow;
+  ctx.fillRect(0, h - 150, w, 150);
+
+  // Defense line
+  ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([8, 8]);
+  ctx.beginPath();
+  ctx.moveTo(0, ship.y + 15);
+  ctx.lineTo(w, ship.y + 15);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw invaders
+  invaders.forEach(drawInvader);
+
+  // Draw lasers
+  lasers.forEach(drawLaser);
+
+  // Draw ship
+  drawShip(ship.x, ship.y);
+
+  // Draw explosions
+  explosions.forEach(exp => {
+    ctx.globalAlpha = exp.life;
+    ctx.fillStyle = exp.color;
+    ctx.beginPath();
+    ctx.arc(exp.x, exp.y, exp.radius * (1 + (1 - exp.life) * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Targeting line from ship to target (subtle)
+  if (targetInvader && targetInvader.alive && answering && lasers.length === 0) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(74, 222, 128, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 6]);
+    ctx.beginPath();
+    ctx.moveTo(ship.x, ship.y - ship.height / 2);
+    ctx.lineTo(targetInvader.x, targetInvader.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Crosshair on target
+    const cx = targetInvader.x;
+    const cy = targetInvader.y + Math.sin(Date.now() * 0.003 + targetInvader.bobPhase) * 3;
+    ctx.strokeStyle = 'rgba(74, 222, 128, 0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - 28, cy); ctx.lineTo(cx - 16, cy);
+    ctx.moveTo(cx + 16, cy); ctx.lineTo(cx + 28, cy);
+    ctx.moveTo(cx, cy - 28); ctx.lineTo(cx, cy - 16);
+    ctx.moveTo(cx, cy + 16); ctx.lineTo(cx, cy + 28);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+// ─── Game Loop ───
+function gameLoop(timestamp) {
+  const dt = Math.min((timestamp - lastTime) / 1000, 0.05); // cap at 50ms
+  lastTime = timestamp;
+
+  update(dt);
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+// ─── Init ───
+spawnWave();
+updateHUD();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

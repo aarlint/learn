@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6d28d9"/>
+      <stop offset="100%" style="stop-color:#4c1d95"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Wizard Hat -->
+  <path d="M256 80 L340 320 L172 320 Z" fill="url(#hat)"/>
+  <!-- Hat Brim -->
+  <ellipse cx="256" cy="320" rx="120" ry="30" fill="#5b21b6"/>
+  <!-- Star on hat -->
+  <polygon points="256,140 268,175 305,175 275,200 285,235 256,212 227,235 237,200 207,175 244,175" fill="#fbbf24"/>
+  <!-- Sparkles -->
+  <circle cx="140" cy="150" r="8" fill="#fff" opacity="0.8"/>
+  <circle cx="380" cy="200" r="6" fill="#fff" opacity="0.6"/>
+  <circle cx="120" cy="380" r="10" fill="#fff" opacity="0.7"/>
+  <circle cx="400" cy="400" r="7" fill="#fff" opacity="0.5"/>
+  <!-- Face area hint -->
+  <ellipse cx="256" cy="390" rx="60" ry="50" fill="#fde68a"/>
+  <!-- Eyes -->
+  <circle cx="236" cy="380" r="8" fill="#1e293b"/>
+  <circle cx="276" cy="380" r="8" fill="#1e293b"/>
+  <!-- Beard -->
+  <path d="M220 400 Q210 450 230 460 L282 460 Q302 450 292 400 Q256 420 220 400" fill="#9ca3af"/>
+</svg>

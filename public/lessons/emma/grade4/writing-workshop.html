@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Writing Workshop - 4th Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #fb923c;
+  --orange-light: #fff7ed;
+  --purple: #a48bdb;
+  --mint: #2DD4A8;
+  --mint-light: #ECFDF5;
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #1E293B;
+  --text-mid: #475569;
+  --border: #E2E8F0;
+  --shadow: 0 8px 30px rgba(0,0,0,0.06);
+  --radius: 20px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
+.app { max-width: 500px; margin: 0 auto; padding-bottom: 100px; }
+.header { text-align: center; padding: 16px 0; }
+.header h1 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; background: linear-gradient(135deg, var(--orange), #ea580c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: var(--text-mid); font-size: 0.9rem; }
+
+.progress-bar { height: 8px; background: var(--border); border-radius: 10px; margin: 16px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ea580c); transition: width 0.5s ease; }
+
+.score-row { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
+.score-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-weight: 700; font-size: 0.95rem; }
+
+.card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card h2 { font-family: 'Baloo 2', cursive; font-size: 1.2rem; margin-bottom: 8px; color: var(--orange); }
+.card p { color: var(--text-mid); margin-bottom: 12px; font-size: 0.95rem; }
+
+.problem-area { background: var(--orange-light); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.example-text { background: white; border-radius: 10px; padding: 14px; margin: 12px 0; font-size: 0.95rem; line-height: 1.7; border-left: 4px solid var(--orange); }
+.example-label { font-size: 0.8rem; font-weight: 700; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice-btn { padding: 14px 16px; background: white; border: 2px solid var(--border); border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.5; }
+.choice-btn:active { transform: scale(0.98); }
+.choice-btn.correct { background: var(--mint-light); border-color: var(--mint); color: #059669; }
+.choice-btn.wrong { background: var(--coral-light); border-color: var(--coral); color: var(--coral); }
+
+.feedback { padding: 16px; border-radius: 14px; text-align: center; margin-top: 16px; font-weight: 700; }
+.feedback.correct { background: var(--mint-light); color: #059669; }
+.feedback.wrong { background: var(--coral-light); color: var(--coral); }
+
+.topic-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+.topic-tab { padding: 8px 12px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-family: 'Baloo 2', cursive; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.topic-tab.active { background: var(--orange); color: white; border-color: var(--orange); }
+
+.tip-box { background: #fef3c7; color: #92400e; padding: 12px 16px; border-radius: 12px; font-size: 0.9rem; margin-top: 12px; }
+
+.btn { padding: 14px 32px; font-family: 'Baloo 2', cursive; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; }
+.btn-primary { background: var(--orange); color: white; }
+
+.hidden { display: none !important; }
+.complete-screen { text-align: center; padding: 40px 20px; }
+.complete-screen .icon { font-size: 4rem; margin-bottom: 16px; }
+.complete-screen h2 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; color: var(--orange); }
+.complete-screen p { color: var(--text-mid); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>✍️ Writing Workshop</h1>
+    <p>4th Grade • Paragraphs & Essays</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-item">⭐ <span id="stars">0</span></div>
+    <div class="score-item">🔥 <span id="streak">0</span></div>
+  </div>
+
+  <div class="topic-tabs">
+    <button class="topic-tab active" data-topic="topic-sentence">Topic Sentences</button>
+    <button class="topic-tab" data-topic="transitions">Transitions</button>
+    <button class="topic-tab" data-topic="conclusions">Conclusions</button>
+    <button class="topic-tab" data-topic="organize">Organize</button>
+  </div>
+
+  <div class="card" id="problemCard">
+    <h2 id="problemTitle">Writing Skills</h2>
+    <p id="problemInstructions">Choose the best answer.</p>
+    
+    <div class="problem-area" id="problemArea"></div>
+    <div class="answer-section" id="answerSection"></div>
+    <div class="feedback hidden" id="feedback"></div>
+  </div>
+
+  <div class="card hidden" id="completeCard">
+    <div class="complete-screen">
+      <div class="icon">🎉</div>
+      <h2>Topic Complete!</h2>
+      <p id="completeMsg"></p>
+      <button class="btn btn-primary" onclick="nextTopic()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROBLEMS_PER_TOPIC = 5;
+
+const topicSentenceProblems = [
+  {
+    context: 'A paragraph about dogs as pets',
+    question: 'Which is the BEST topic sentence?',
+    choices: [
+      'Dogs come in many sizes.',
+      'Dogs make wonderful pets for many reasons.',
+      'My neighbor has a dog named Max.',
+      'Some dogs have long fur.'
+    ],
+    answer: 1,
+    tip: 'A good topic sentence tells what the whole paragraph will be about.'
+  },
+  {
+    context: 'A paragraph about why exercise is important',
+    question: 'Which is the BEST topic sentence?',
+    choices: [
+      'Running is one type of exercise.',
+      'I go to the gym every week.',
+      'Exercise helps keep our bodies healthy and strong.',
+      'Some people like to swim.'
+    ],
+    answer: 2,
+    tip: 'The topic sentence should express the main idea clearly.'
+  },
+  {
+    context: 'A paragraph about rainforests',
+    question: 'Which is the BEST topic sentence?',
+    choices: [
+      'It rains a lot in the rainforest.',
+      'Rainforests are home to an amazing variety of plants and animals.',
+      'Trees are very tall.',
+      'I would like to visit a rainforest someday.'
+    ],
+    answer: 1,
+    tip: 'Topic sentences should be specific enough to guide the paragraph.'
+  },
+  {
+    context: 'A paragraph about the benefits of reading',
+    question: 'Which is the BEST topic sentence?',
+    choices: [
+      'Books can be found in libraries.',
+      'I read a good book last week.',
+      'Reading every day has many benefits for students.',
+      'Some books have pictures.'
+    ],
+    answer: 2,
+    tip: 'A strong topic sentence makes a claim that the paragraph will support.'
+  },
+  {
+    context: 'A paragraph about recycling',
+    question: 'Which is the BEST topic sentence?',
+    choices: [
+      'Plastic bottles can be recycled.',
+      'Recycling is an important way to protect our environment.',
+      'Blue bins are for recycling.',
+      'My family recycles.'
+    ],
+    answer: 1,
+    tip: 'Topic sentences introduce the main point of the paragraph.'
+  },
+];
+
+const transitionProblems = [
+  {
+    sentence: 'First, I gathered all the ingredients. _____, I mixed them in a bowl.',
+    question: 'Which transition word fits best?',
+    choices: ['However', 'Next', 'For example', 'In conclusion'],
+    answer: 1,
+    tip: 'Use "Next" or "Then" to show order in a sequence.'
+  },
+  {
+    sentence: 'The movie was very long. _____, it was exciting the whole time.',
+    question: 'Which transition word fits best?',
+    choices: ['Also', 'First', 'However', 'Finally'],
+    answer: 2,
+    tip: 'Use "However" or "But" to show contrast.'
+  },
+  {
+    sentence: 'Dogs need exercise. _____, they need to go for daily walks.',
+    question: 'Which transition word fits best?',
+    choices: ['For example', 'In conclusion', 'However', 'Although'],
+    answer: 0,
+    tip: 'Use "For example" to give a specific example.'
+  },
+  {
+    sentence: 'She studied hard for the test. _____, she practiced every night.',
+    question: 'Which transition word fits best?',
+    choices: ['However', 'In conclusion', 'In addition', 'Although'],
+    answer: 2,
+    tip: 'Use "In addition" or "Also" to add more information.'
+  },
+  {
+    sentence: '_____, after months of practice, I finally learned to ride a bike.',
+    question: 'Which transition word fits best?',
+    choices: ['For example', 'However', 'Finally', 'Also'],
+    answer: 2,
+    tip: 'Use "Finally" to show something happened at the end.'
+  },
+];
+
+const conclusionProblems = [
+  {
+    paragraph: 'Pizza is my favorite food. I love the gooey cheese and delicious toppings. You can get pizza with pepperoni, mushrooms, or just cheese. My family orders pizza every Friday night.',
+    question: 'Which is the BEST concluding sentence?',
+    choices: [
+      'Pizza comes from Italy.',
+      'For all these reasons, pizza is the perfect meal for any occasion.',
+      'Some people don\'t like pizza.',
+      'Cheese is made from milk.'
+    ],
+    answer: 1,
+    tip: 'A good conclusion wraps up the paragraph and relates back to the topic sentence.'
+  },
+  {
+    paragraph: 'Butterflies are fascinating insects. They start as caterpillars and transform into beautiful winged creatures. Their wings can be many different colors and patterns. Butterflies help pollinate flowers as they fly from plant to plant.',
+    question: 'Which is the BEST concluding sentence?',
+    choices: [
+      'Moths are also insects.',
+      'I saw a butterfly yesterday.',
+      'Clearly, butterflies are amazing creatures that play an important role in nature.',
+      'Some butterflies are orange.'
+    ],
+    answer: 2,
+    tip: 'Conclusions often start with words like "clearly," "overall," or "in conclusion."'
+  },
+  {
+    paragraph: 'Learning to play an instrument takes practice. You have to practice scales and songs over and over. It can be frustrating at first, but it gets easier. Playing music also helps your brain develop.',
+    question: 'Which is the BEST concluding sentence?',
+    choices: [
+      'Drums are very loud.',
+      'With patience and practice, anyone can enjoy making music.',
+      'My sister plays the flute.',
+      'Practice makes perfect.'
+    ],
+    answer: 1,
+    tip: 'A strong conclusion gives a final thought that connects to the main idea.'
+  },
+  {
+    paragraph: 'Drinking water is important for your health. Water helps your body stay cool. It also helps your brain work better. Every part of your body needs water to function properly.',
+    question: 'Which is the BEST concluding sentence?',
+    choices: [
+      'Water is clear.',
+      'Make sure to drink plenty of water every day to keep your body healthy.',
+      'I drink juice sometimes.',
+      'Water comes from rain.'
+    ],
+    answer: 1,
+    tip: 'Good conclusions often include a call to action or final thought.'
+  },
+  {
+    paragraph: 'Homework helps students practice what they learn in school. It teaches responsibility and time management. Homework also helps parents know what their children are studying.',
+    question: 'Which is the BEST concluding sentence?',
+    choices: [
+      'I don\'t always finish my homework.',
+      'Although homework can be challenging, it helps students become better learners.',
+      'Teachers assign homework.',
+      'Math homework is hard.'
+    ],
+    answer: 1,
+    tip: 'A conclusion should leave the reader with a final, memorable thought.'
+  },
+];
+
+const organizeProblems = [
+  {
+    question: 'You\'re writing about how to make a sandwich. What comes FIRST?',
+    choices: [
+      'Enjoy your sandwich!',
+      'Add your favorite toppings.',
+      'Gather all your ingredients.',
+      'Put the second slice of bread on top.'
+    ],
+    answer: 2,
+    tip: 'How-to writing should start with gathering what you need.'
+  },
+  {
+    question: 'In a persuasive essay, where should your opinion statement go?',
+    choices: [
+      'In the middle of the essay',
+      'At the very end only',
+      'In the introduction paragraph',
+      'It shouldn\'t be included'
+    ],
+    answer: 2,
+    tip: 'Your opinion (thesis) should be clear in the introduction.'
+  },
+  {
+    question: 'Which paragraph structure is correct?',
+    choices: [
+      'Details, topic sentence, conclusion',
+      'Conclusion, details, topic sentence',
+      'Topic sentence, details, conclusion',
+      'Details only, no topic sentence'
+    ],
+    answer: 2,
+    tip: 'Paragraphs start with a topic sentence, then details, then a conclusion.'
+  },
+  {
+    question: 'You\'re writing a story. What usually goes in the MIDDLE?',
+    choices: [
+      'The problem or conflict',
+      'Introducing the characters',
+      'The ending',
+      'The setting'
+    ],
+    answer: 0,
+    tip: 'Stories have a beginning (setup), middle (problem), and end (solution).'
+  },
+  {
+    question: 'Where do you put your STRONGEST reason in a persuasive essay?',
+    choices: [
+      'First, before other reasons',
+      'Last, right before the conclusion',
+      'Only in the introduction',
+      'In the conclusion paragraph'
+    ],
+    answer: 1,
+    tip: 'Save your strongest point for last to leave a lasting impression.'
+  },
+];
+
+const topics = {
+  'topic-sentence': { title: 'Topic Sentences', problems: topicSentenceProblems },
+  'transitions': { title: 'Transitions', problems: transitionProblems },
+  'conclusions': { title: 'Conclusions', problems: conclusionProblems },
+  'organize': { title: 'Organization', problems: organizeProblems },
+};
+
+let state = { topic: 'topic-sentence', problemIdx: 0, problemNum: 0, stars: 0, streak: 0, answered: false, usedProblems: [] };
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function getRandomProblem() {
+  const topic = topics[state.topic];
+  const available = topic.problems.filter((_, i) => !state.usedProblems.includes(i));
+  if (available.length === 0) {
+    state.usedProblems = [];
+    return topic.problems[randInt(0, topic.problems.length - 1)];
+  }
+  const idx = randInt(0, available.length - 1);
+  const originalIdx = topic.problems.indexOf(available[idx]);
+  state.usedProblems.push(originalIdx);
+  return available[idx];
+}
+
+function renderProblem() {
+  const problem = getRandomProblem();
+  state.currentProblem = problem;
+  state.answered = false;
+  
+  document.getElementById('problemTitle').textContent = topics[state.topic].title;
+  document.getElementById('problemInstructions').textContent = problem.question;
+  document.getElementById('feedback').classList.add('hidden');
+  
+  let areaContent = '';
+  if (problem.context) {
+    areaContent = `<div class="example-label">Writing about:</div><div class="example-text">${problem.context}</div>`;
+  } else if (problem.sentence) {
+    areaContent = `<div class="example-label">Complete the sentence:</div><div class="example-text">${problem.sentence}</div>`;
+  } else if (problem.paragraph) {
+    areaContent = `<div class="example-label">Read this paragraph:</div><div class="example-text">${problem.paragraph}</div>`;
+  }
+  
+  document.getElementById('problemArea').innerHTML = areaContent;
+  document.getElementById('answerSection').innerHTML = `
+    <div class="choices">
+      ${problem.choices.map((c, i) => `<button class="choice-btn" onclick="checkChoice(${i})">${c}</button>`).join('')}
+    </div>
+  `;
+  
+  updateUI();
+}
+
+function checkChoice(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  
+  const correct = idx === state.currentProblem.answer;
+  const btns = document.querySelectorAll('.choice-btn');
+  
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[state.currentProblem.answer].classList.add('correct');
+  
+  const fb = document.getElementById('feedback');
+  if (correct) {
+    state.stars++;
+    state.streak++;
+    fb.textContent = '✓ Correct! ' + ['Great writing skills!', 'Nice work!', 'Excellent!'][randInt(0, 2)];
+    fb.className = 'feedback correct';
+  } else {
+    state.streak = 0;
+    fb.innerHTML = `✗ Not quite.<div class="tip-box">💡 ${state.currentProblem.tip}</div>`;
+    fb.className = 'feedback wrong';
+  }
+  
+  fb.classList.remove('hidden');
+  updateUI();
+  
+  setTimeout(() => {
+    state.problemNum++;
+    if (state.problemNum >= PROBLEMS_PER_TOPIC) showComplete();
+    else renderProblem();
+  }, correct ? 1500 : 2500);
+}
+
+function updateUI() {
+  document.getElementById('stars').textContent = state.stars;
+  document.getElementById('streak').textContent = state.streak;
+  document.getElementById('progressFill').style.width = ((state.problemNum + 1) / PROBLEMS_PER_TOPIC * 100) + '%';
+}
+
+function showComplete() {
+  document.getElementById('problemCard').classList.add('hidden');
+  document.getElementById('completeCard').classList.remove('hidden');
+  document.getElementById('completeMsg').textContent = `You earned ${state.stars} stars in ${topics[state.topic].title}!`;
+}
+
+function nextTopic() {
+  const keys = Object.keys(topics);
+  const idx = keys.indexOf(state.topic);
+  if (idx < keys.length - 1) setTopic(keys[idx + 1]);
+  else {
+    document.getElementById('completeCard').querySelector('.complete-screen').innerHTML = `
+      <div class="icon">🏆</div><h2>Writing Pro!</h2>
+      <p>Total stars: ${state.stars}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Practice More</button>
+    `;
+  }
+}
+
+function setTopic(topic) {
+  state.topic = topic;
+  state.problemNum = 0;
+  state.usedProblems = [];
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.toggle('active', t.dataset.topic === topic));
+  document.getElementById('problemCard').classList.remove('hidden');
+  document.getElementById('completeCard').classList.add('hidden');
+  renderProblem();
+  updateUI();
+}
+
+document.querySelectorAll('.topic-tab').forEach(t => t.addEventListener('click', () => setTopic(t.dataset.topic)));
+renderProblem();
+</script>
+</body>
+</html>

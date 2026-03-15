@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Informational Text - 4th Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #f59e0b;
+  --orange-light: #fffbeb;
+  --purple: #a48bdb;
+  --mint: #2DD4A8;
+  --mint-light: #ECFDF5;
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #1E293B;
+  --text-mid: #475569;
+  --border: #E2E8F0;
+  --shadow: 0 8px 30px rgba(0,0,0,0.06);
+  --radius: 20px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
+.app { max-width: 500px; margin: 0 auto; padding-bottom: 100px; }
+.header { text-align: center; padding: 16px 0; }
+.header h1 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; background: linear-gradient(135deg, var(--orange), #ea580c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { color: var(--text-mid); font-size: 0.9rem; }
+
+.progress-bar { height: 8px; background: var(--border); border-radius: 10px; margin: 16px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), #ea580c); transition: width 0.5s ease; }
+
+.score-row { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
+.score-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 50px; font-weight: 700; font-size: 0.95rem; }
+
+.card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card h2 { font-family: 'Baloo 2', cursive; font-size: 1.2rem; margin-bottom: 8px; color: var(--orange); }
+.card p { color: var(--text-mid); margin-bottom: 12px; font-size: 0.95rem; }
+
+.passage-area { background: var(--orange-light); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.passage-title { font-family: 'Baloo 2', cursive; font-size: 1.3rem; color: var(--orange); margin-bottom: 12px; }
+.passage-text { font-size: 1rem; line-height: 1.8; color: var(--text); }
+.passage-text p { margin-bottom: 12px; }
+
+.question-area { background: white; border: 2px solid var(--orange); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.question-text { font-weight: 700; font-size: 1.05rem; margin-bottom: 12px; }
+
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice-btn { padding: 14px 16px; background: white; border: 2px solid var(--border); border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; cursor: pointer; text-align: left; transition: all 0.2s; }
+.choice-btn:active { transform: scale(0.98); }
+.choice-btn.correct { background: var(--mint-light); border-color: var(--mint); color: #059669; }
+.choice-btn.wrong { background: var(--coral-light); border-color: var(--coral); color: var(--coral); }
+
+.feedback { padding: 16px; border-radius: 14px; text-align: center; margin-top: 16px; font-weight: 700; }
+.feedback.correct { background: var(--mint-light); color: #059669; }
+.feedback.wrong { background: var(--coral-light); color: var(--coral); }
+
+.skill-badge { display: inline-block; padding: 4px 10px; background: var(--orange); color: white; border-radius: 50px; font-size: 0.75rem; font-weight: 700; margin-bottom: 12px; }
+
+.tip-box { background: #fef3c7; color: #92400e; padding: 12px 16px; border-radius: 12px; font-size: 0.9rem; margin-top: 12px; }
+
+.btn { padding: 14px 32px; font-family: 'Baloo 2', cursive; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; }
+.btn-primary { background: var(--orange); color: white; }
+
+.hidden { display: none !important; }
+.complete-screen { text-align: center; padding: 40px 20px; }
+.complete-screen .icon { font-size: 4rem; margin-bottom: 16px; }
+.complete-screen h2 { font-family: 'Baloo 2', cursive; font-size: 1.8rem; color: var(--orange); }
+.complete-screen p { color: var(--text-mid); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>📰 Informational Text</h1>
+    <p>4th Grade • Reading Comprehension</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-item">⭐ <span id="stars">0</span></div>
+    <div class="score-item">📖 <span id="passages">1</span>/4</div>
+  </div>
+
+  <div class="card" id="problemCard">
+    <div class="passage-area" id="passageArea"></div>
+    <div class="question-area" id="questionArea"></div>
+    <div class="answer-section" id="answerSection"></div>
+    <div class="feedback hidden" id="feedback"></div>
+  </div>
+
+  <div class="card hidden" id="completeCard">
+    <div class="complete-screen">
+      <div class="icon">🏆</div>
+      <h2>Great Reading!</h2>
+      <p id="completeMsg"></p>
+      <button class="btn btn-primary" onclick="location.reload()">Read More</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const passages = [
+  {
+    title: 'The Life Cycle of Butterflies',
+    text: `<p>Butterflies go through four stages in their life cycle. This process is called metamorphosis.</p>
+<p>First, a butterfly starts as a tiny <strong>egg</strong>. The female butterfly lays her eggs on leaves. After about a week, the egg hatches.</p>
+<p>Next comes the <strong>caterpillar</strong> stage, also called a larva. The caterpillar eats constantly and grows very quickly. It sheds its skin several times as it grows bigger.</p>
+<p>Then the caterpillar forms a <strong>chrysalis</strong>, which is like a protective shell. Inside, amazing changes happen. This stage can last from a few weeks to several months.</p>
+<p>Finally, an adult <strong>butterfly</strong> emerges with colorful wings. It will then find a mate and lay eggs, starting the cycle again.</p>`,
+    questions: [
+      { skill: 'Main Idea', question: 'What is this passage mainly about?', choices: ['How caterpillars eat', 'The four stages of a butterfly\'s life', 'Why butterflies have colorful wings', 'Where butterflies live'], answer: 1 },
+      { skill: 'Sequence', question: 'What happens RIGHT AFTER the egg hatches?', choices: ['The butterfly flies away', 'A chrysalis forms', 'A caterpillar emerges', 'Wings develop'], answer: 2 },
+      { skill: 'Vocabulary', question: 'What does "metamorphosis" mean in this passage?', choices: ['A type of butterfly', 'The process of changing form', 'A kind of egg', 'Flying through the air'], answer: 1 },
+    ]
+  },
+  {
+    title: 'Why Do We Have Seasons?',
+    text: `<p>Earth has four seasons: spring, summer, fall, and winter. But why do seasons change?</p>
+<p>The answer is Earth's <strong>tilt</strong>. Our planet is tilted at an angle as it orbits the sun. This tilt is about 23.5 degrees.</p>
+<p>When the Northern Hemisphere tilts toward the sun, it receives more direct sunlight. This makes it <strong>summer</strong> there. At the same time, the Southern Hemisphere tilts away from the sun, making it winter there.</p>
+<p>Six months later, Earth has moved to the other side of the sun. Now the Northern Hemisphere tilts away, bringing <strong>winter</strong>. The Southern Hemisphere tilts toward the sun and has summer.</p>
+<p>This is why when it's summer in the United States, it's winter in Australia!</p>`,
+    questions: [
+      { skill: 'Cause & Effect', question: 'What CAUSES Earth to have seasons?', choices: ['The moon\'s gravity', 'Earth\'s tilt as it orbits the sun', 'Distance from the sun', 'Clouds in the sky'], answer: 1 },
+      { skill: 'Detail', question: 'How many degrees is Earth tilted?', choices: ['10 degrees', '23.5 degrees', '45 degrees', '90 degrees'], answer: 1 },
+      { skill: 'Inference', question: 'When it\'s winter in New York, what season is it in Sydney, Australia?', choices: ['Winter', 'Spring', 'Summer', 'Fall'], answer: 2 },
+    ]
+  },
+  {
+    title: 'The Amazing Octopus',
+    text: `<p>The octopus is one of the most intelligent creatures in the ocean. These amazing animals have some incredible abilities.</p>
+<p>An octopus has <strong>eight arms</strong>, each covered with suction cups. These arms can taste and feel things. If an octopus loses an arm, it can grow a new one!</p>
+<p>Octopuses are masters of <strong>camouflage</strong>. They can change their color and texture in less than a second. This helps them hide from predators and sneak up on prey.</p>
+<p>These creatures are also excellent <strong>problem solvers</strong>. Scientists have watched octopuses open jars, solve mazes, and even escape from tanks! They have the largest brains of any invertebrate.</p>
+<p>Most octopuses live only one to two years, but they make the most of their short lives.</p>`,
+    questions: [
+      { skill: 'Main Idea', question: 'What is the main idea of this passage?', choices: ['Octopuses live in the ocean', 'Octopuses have many amazing abilities', 'Octopuses can change color', 'Octopuses live short lives'], answer: 1 },
+      { skill: 'Detail', question: 'What happens if an octopus loses an arm?', choices: ['It dies', 'It can\'t swim', 'It grows a new one', 'It changes color'], answer: 2 },
+      { skill: 'Vocabulary', question: 'What does "camouflage" mean?', choices: ['Swimming fast', 'Blending in with surroundings', 'Solving puzzles', 'Growing new arms'], answer: 1 },
+    ]
+  },
+  {
+    title: 'How Recycling Helps Our Planet',
+    text: `<p>Every day, people throw away millions of tons of trash. Much of this waste ends up in landfills or the ocean. Recycling is one way we can help solve this problem.</p>
+<p><strong>Paper recycling</strong> saves trees. It takes about 17 trees to make one ton of new paper. But recycled paper uses paper that already exists, protecting our forests.</p>
+<p><strong>Plastic recycling</strong> is also important. Plastic takes hundreds of years to break down naturally. By recycling plastic bottles and containers, we keep them out of landfills and oceans.</p>
+<p><strong>Metal recycling</strong> saves energy. Making new aluminum cans uses 95% more energy than recycling old ones. That's a huge difference!</p>
+<p>Everyone can help by following the three R's: <strong>Reduce, Reuse, and Recycle</strong>. Small actions by many people can make a big difference for our planet.</p>`,
+    questions: [
+      { skill: 'Author\'s Purpose', question: 'Why did the author write this passage?', choices: ['To entertain with a funny story', 'To persuade readers to recycle', 'To describe a day at school', 'To explain how paper is made'], answer: 1 },
+      { skill: 'Detail', question: 'How much MORE energy does making new aluminum use compared to recycling?', choices: ['25% more', '50% more', '75% more', '95% more'], answer: 3 },
+      { skill: 'Text Structure', question: 'How is this passage organized?', choices: ['Problem and solution', 'Story with beginning, middle, end', 'Comparing two things', 'Steps in order'], answer: 0 },
+    ]
+  },
+];
+
+let state = {
+  passageIdx: 0,
+  questionIdx: 0,
+  stars: 0,
+  answered: false,
+};
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function renderPassage() {
+  const passage = passages[state.passageIdx];
+  const question = passage.questions[state.questionIdx];
+  state.answered = false;
+  
+  document.getElementById('passageArea').innerHTML = `
+    <div class="passage-title">${passage.title}</div>
+    <div class="passage-text">${passage.text}</div>
+  `;
+  
+  document.getElementById('questionArea').innerHTML = `
+    <div class="skill-badge">${question.skill}</div>
+    <div class="question-text">${question.question}</div>
+  `;
+  
+  document.getElementById('answerSection').innerHTML = `
+    <div class="choices">
+      ${question.choices.map((c, i) => `
+        <button class="choice-btn" onclick="checkAnswer(${i})">${c}</button>
+      `).join('')}
+    </div>
+  `;
+  
+  document.getElementById('feedback').classList.add('hidden');
+  updateUI();
+}
+
+function checkAnswer(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  
+  const passage = passages[state.passageIdx];
+  const question = passage.questions[state.questionIdx];
+  const correct = idx === question.answer;
+  
+  const btns = document.querySelectorAll('.choice-btn');
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[question.answer].classList.add('correct');
+  
+  const fb = document.getElementById('feedback');
+  
+  if (correct) {
+    state.stars++;
+    fb.textContent = '✓ Correct! ' + ['Great reading!', 'Nice work!', 'Excellent!'][randInt(0, 2)];
+    fb.className = 'feedback correct';
+  } else {
+    fb.innerHTML = `✗ Not quite.<div class="tip-box">The correct answer shows strong reading comprehension of the ${question.skill.toLowerCase()} skill.</div>`;
+    fb.className = 'feedback wrong';
+  }
+  
+  fb.classList.remove('hidden');
+  updateUI();
+  
+  setTimeout(nextQuestion, correct ? 1500 : 2500);
+}
+
+function nextQuestion() {
+  const passage = passages[state.passageIdx];
+  
+  state.questionIdx++;
+  
+  if (state.questionIdx >= passage.questions.length) {
+    // Move to next passage
+    state.passageIdx++;
+    state.questionIdx = 0;
+    
+    if (state.passageIdx >= passages.length) {
+      showComplete();
+      return;
+    }
+  }
+  
+  renderPassage();
+}
+
+function updateUI() {
+  document.getElementById('stars').textContent = state.stars;
+  document.getElementById('passages').textContent = state.passageIdx + 1;
+  
+  const totalQuestions = passages.reduce((sum, p) => sum + p.questions.length, 0);
+  let currentQuestion = 0;
+  for (let i = 0; i < state.passageIdx; i++) {
+    currentQuestion += passages[i].questions.length;
+  }
+  currentQuestion += state.questionIdx + 1;
+  
+  document.getElementById('progressFill').style.width = (currentQuestion / totalQuestions * 100) + '%';
+}
+
+function showComplete() {
+  document.getElementById('problemCard').classList.add('hidden');
+  document.getElementById('completeCard').classList.remove('hidden');
+  document.getElementById('completeMsg').textContent = `You earned ${state.stars} stars reading ${passages.length} passages!`;
+}
+
+renderPassage();
+</script>
+</body>
+</html>

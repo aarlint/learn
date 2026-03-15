@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometry Galaxy - 3rd Grade Math</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral: #FF6B6B;
+  --coral-light: #FFF0F0;
+  --sun: #FFD93D;
+  --sun-light: #FFFCE8;
+  --mint: #2DD4A8;
+  --mint-light: #ECFDF5;
+  --sky: #3B82F6;
+  --sky-light: #EFF6FF;
+  --lilac: #A78BFA;
+  --lilac-light: #F5F3FF;
+  --peach: #FB923C;
+  --peach-light: #FFF7ED;
+  --pink: #EC4899;
+  --pink-light: #FDF2F8;
+  --teal: #14B8A6;
+  --teal-light: #F0FDFA;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #1E293B;
+  --text-mid: #475569;
+  --text-light: #94A3B8;
+  --border: #E2E8F0;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow: 0 8px 30px rgba(0,0,0,0.06);
+  --shadow-lg: 0 20px 50px rgba(0,0,0,0.1);
+  --radius: 20px;
+  --radius-sm: 14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,107,107,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(59,130,246,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(167,139,250,0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, #CBD5E1 0.7px, transparent 0.7px);
+  background-size: 32px 32px;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 20px 20px 80px; }
+
+.header {
+  text-align: center;
+  padding: 36px 0 20px;
+}
+.header h1 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FF6B6B 0%, #A78BFA 40%, #3B82F6 70%, #2DD4A8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+.header .tagline {
+  font-size: 1.05rem;
+  color: var(--text-mid);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.score-bar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0 24px;
+  flex-wrap: wrap;
+}
+.score-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: 2px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+.score-pill:hover { transform: translateY(-2px); }
+.score-pill .icon { font-size: 1.2rem; }
+.score-pill.glow { animation: pillGlow 0.5s ease; }
+@keyframes pillGlow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+  100% { transform: scale(1); }
+}
+
+.nav {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  background: var(--card);
+  padding: 6px;
+  border-radius: 50px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+.nav-btn {
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: none;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all 0.25s;
+  white-space: nowrap;
+}
+.nav-btn:hover { background: #F1F5F9; }
+.nav-btn.active { color: white; }
+.nav-btn.active[data-t="quad"] { background: var(--sky); box-shadow: 0 4px 12px rgba(59,130,246,0.35); }
+.nav-btn.active[data-t="shapes"] { background: var(--coral); box-shadow: 0 4px 12px rgba(255,107,107,0.35); }
+.nav-btn.active[data-t="perimeter"] { background: var(--mint); box-shadow: 0 4px 12px rgba(45,212,168,0.35); }
+.nav-btn.active[data-t="area"] { background: var(--lilac); box-shadow: 0 4px 12px rgba(167,139,250,0.35); }
+.nav-btn.active[data-t="angles"] { background: var(--peach); box-shadow: 0 4px 12px rgba(251,146,60,0.35); }
+.nav-btn.active[data-t="fractions"] { background: var(--pink); box-shadow: 0 4px 12px rgba(236,72,153,0.35); }
+
+.section { display: none; animation: slideUp 0.45s ease; }
+.section.active { display: block; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  border: 1.5px solid var(--border);
+  transition: transform 0.2s;
+}
+.card:hover { transform: translateY(-1px); }
+.card h2 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.card .desc {
+  color: var(--text-mid);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.card-accent {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+
+.family-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.tree-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.tree-node {
+  position: relative;
+  background: var(--card);
+  border: 3px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 130px;
+  box-shadow: var(--shadow-sm);
+}
+.tree-node:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.tree-node.selected { border-color: var(--sky); background: var(--sky-light); }
+.tree-node .node-shape { margin-bottom: 8px; }
+.tree-node .node-name {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 1rem;
+}
+.tree-node .node-sides {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+.tree-connector {
+  width: 2px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 auto;
+}
+.tree-hline {
+  height: 2px;
+  background: var(--border);
+  width: 60%;
+  margin: 0 auto;
+}
+
+.prop-explorer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 16px;
+}
+@media (max-width: 640px) { .prop-explorer { grid-template-columns: 1fr; } }
+
+.prop-shape-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #F8FAFC, #EFF6FF);
+  border-radius: var(--radius-sm);
+  padding: 28px;
+  border: 2px dashed var(--border);
+  min-height: 220px;
+}
+.prop-shape-display .shape-label {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-top: 12px;
+  color: var(--sky);
+}
+
+.prop-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prop-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 2px solid transparent;
+  transition: all 0.25s;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.prop-row.active { border-color: var(--mint); background: var(--mint-light); }
+.prop-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 2.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  background: white;
+}
+.prop-row.active .prop-check {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: white;
+}
+
+.sort-game {
+  margin-top: 8px;
+}
+.sort-buckets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 500px) { .sort-buckets { grid-template-columns: 1fr; } }
+.sort-bucket {
+  border: 3px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  min-height: 120px;
+  transition: all 0.25s;
+  text-align: center;
+}
+.sort-bucket.drag-over {
+  border-color: var(--sky);
+  background: var(--sky-light);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+}
+.sort-bucket .bucket-label {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: var(--text-mid);
+}
+.sort-bucket .bucket-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.sort-shapes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  border: 2px solid var(--border);
+  min-height: 60px;
+}
+
+.drag-shape {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 2.5px solid var(--border);
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: grab;
+  transition: all 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.drag-shape:hover { border-color: var(--sky); transform: translateY(-2px); box-shadow: var(--shadow); }
+.drag-shape:active { cursor: grabbing; }
+.drag-shape.correct-placed { border-color: var(--mint); background: var(--mint-light); }
+.drag-shape.wrong-placed { border-color: var(--coral); background: var(--coral-light); animation: shake 0.4s ease; }
+
+.quiz-q {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+.quiz-visual {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 24px;
+}
+.quiz-visual svg { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.08)); }
+.opts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+@media (max-width: 480px) { .opts-grid { grid-template-columns: 1fr; } }
+.opt-btn {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  border: 2.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  color: var(--text);
+}
+.opt-btn:hover { border-color: var(--sky); background: var(--sky-light); transform: scale(1.02); }
+.opt-btn.correct {
+  border-color: var(--mint) !important;
+  background: var(--mint-light) !important;
+  color: #065F46;
+  animation: popIn 0.35s ease;
+}
+.opt-btn.wrong {
+  border-color: var(--coral) !important;
+  background: var(--coral-light) !important;
+  color: #991B1B;
+  animation: shake 0.4s ease;
+}
+@keyframes popIn { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.feedback-box {
+  text-align: center;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.1rem;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  margin-top: 14px;
+  display: none;
+  line-height: 1.5;
+}
+.feedback-box.show { display: block; animation: slideUp 0.3s ease; }
+.feedback-box.correct { background: var(--mint-light); color: #065F46; border: 2px solid #A7F3D0; }
+.feedback-box.wrong { background: var(--coral-light); color: #991B1B; border: 2px solid #FECACA; }
+.feedback-box .explain { font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 600; margin-top: 4px; opacity: 0.85; }
+
+.next-btn {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 12px 32px;
+  border-radius: 50px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: none;
+  margin: 18px auto 0;
+  transition: all 0.2s;
+}
+.next-btn.show { display: block; }
+.next-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.next-btn.sky { background: var(--sky); box-shadow: 0 4px 14px rgba(59,130,246,0.35); }
+.next-btn.coral { background: var(--coral); box-shadow: 0 4px 14px rgba(255,107,107,0.35); }
+.next-btn.mint { background: var(--mint); box-shadow: 0 4px 14px rgba(45,212,168,0.35); }
+.next-btn.lilac { background: var(--lilac); box-shadow: 0 4px 14px rgba(167,139,250,0.35); }
+.next-btn.peach { background: var(--peach); box-shadow: 0 4px 14px rgba(251,146,60,0.35); }
+.next-btn.pink { background: var(--pink); box-shadow: 0 4px 14px rgba(236,72,153,0.35); }
+
+.progress-track {
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+.progress-bar.sky { background: linear-gradient(90deg, var(--sky), #60A5FA); }
+.progress-bar.coral { background: linear-gradient(90deg, var(--coral), #FCA5A5); }
+.progress-bar.mint { background: linear-gradient(90deg, var(--mint), #5EEAD4); }
+.progress-bar.lilac { background: linear-gradient(90deg, var(--lilac), #C4B5FD); }
+.progress-bar.peach { background: linear-gradient(90deg, var(--peach), #FDBA74); }
+.progress-bar.pink { background: linear-gradient(90deg, var(--pink), #F9A8D4); }
+
+.learn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+.learn-item {
+  text-align: center;
+  padding: 18px 10px;
+  border-radius: var(--radius-sm);
+  border: 2.5px solid #F1F5F9;
+  transition: all 0.25s;
+  cursor: default;
+  background: white;
+}
+.learn-item:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--border); }
+.learn-item .l-name { font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 0.92rem; margin-top: 8px; }
+.learn-item .l-info { font-size: 0.78rem; color: var(--text-light); font-weight: 600; margin-top: 2px; }
+
+.area-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.area-grid {
+  display: inline-grid;
+  gap: 2px;
+  background: var(--border);
+  padding: 2px;
+  border-radius: 10px;
+}
+.area-cell {
+  width: 38px;
+  height: 38px;
+  background: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.area-cell.on { background: var(--lilac); }
+.area-cell:hover { background: #E8DBFF; }
+.area-cell.on:hover { background: #8B5CF6; }
+.area-label {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem;
+  color: var(--text-mid);
+}
+.area-label strong { color: var(--text); }
+
+.frac-row {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.frac-item {
+  text-align: center;
+}
+.frac-item .frac-label {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.tf-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 16px 0;
+}
+.tf-tag {
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 2.5px solid var(--border);
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+.tf-tag:hover { border-color: var(--sky); background: var(--sky-light); }
+.tf-tag.correct { border-color: var(--mint); background: var(--mint-light); color: #065F46; }
+.tf-tag.wrong { border-color: var(--coral); background: var(--coral-light); color: #991B1B; }
+
+@media (max-width: 600px) {
+  .header h1 { font-size: 2.2rem; }
+  .card { padding: 20px 16px; }
+  .nav-btn { font-size: 0.8rem; padding: 6px 12px; }
+  .tree-node { min-width: 100px; padding: 10px 12px; }
+  .prop-explorer { gap: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Geometry Galaxy ✨</h1>
+    <p class="tagline">Master shapes, sides, angles, and more!</p>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-pill" id="pillStars"><span class="icon">⭐</span><span id="sc-stars">0</span> Stars</div>
+    <div class="score-pill" id="pillStreak"><span class="icon">🔥</span><span id="sc-streak">0</span> Streak</div>
+    <div class="score-pill" id="pillLevel"><span class="icon">🚀</span>Level <span id="sc-level">1</span></div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" data-t="quad" onclick="go('quad')">⬜ Quadrilaterals</button>
+    <button class="nav-btn" data-t="shapes" onclick="go('shapes')">🔷 Shapes</button>
+    <button class="nav-btn" data-t="perimeter" onclick="go('perimeter')">📏 Perimeter</button>
+    <button class="nav-btn" data-t="area" onclick="go('area')">🟪 Area</button>
+    <button class="nav-btn" data-t="angles" onclick="go('angles')">📐 Angles</button>
+    <button class="nav-btn" data-t="fractions" onclick="go('fractions')">🍕 Fractions</button>
+  </div>
+
+  <div class="section active" id="sec-quad">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--sky),var(--lilac))"></div>
+      <h2>⬜ The Quadrilateral Family</h2>
+      <p class="desc">All these shapes have <strong>4 sides</strong> and <strong>4 angles</strong>. Tap any shape to explore its properties!</p>
+      <div class="family-tree">
+        <div class="tree-row">
+          <div class="tree-node selected" id="tn-quad" onclick="selectNode('quad')">
+            <div class="node-shape"><svg width="52" height="44"><polygon points="10,4 48,10 42,40 4,36" fill="#3B82F6" fill-opacity="0.2" stroke="#3B82F6" stroke-width="2.5"/></svg></div>
+            <div class="node-name">Quadrilateral</div>
+            <div class="node-sides">Any 4-sided shape</div>
+          </div>
+        </div>
+        <div class="tree-connector"></div>
+        <div class="tree-hline"></div>
+        <div class="tree-row">
+          <div class="tree-node" id="tn-trap" onclick="selectNode('trap')">
+            <div class="node-shape"><svg width="56" height="42"><polygon points="14,4 42,4 52,38 4,38" fill="#FB923C" fill-opacity="0.2" stroke="#FB923C" stroke-width="2.5"/></svg></div>
+            <div class="node-name">Trapezoid</div>
+            <div class="node-sides">1 pair parallel sides</div>
+          </div>
+          <div class="tree-node" id="tn-pgram" onclick="selectNode('pgram')">
+            <div class="node-shape"><svg width="60" height="40"><polygon points="14,4 54,4 46,36 6,36" fill="#A78BFA" fill-opacity="0.2" stroke="#A78BFA" stroke-width="2.5"/></svg></div>
+            <div class="node-name">Parallelogram</div>
+            <div class="node-sides">2 pairs parallel sides</div>
+          </div>
+        </div>
+        <div class="tree-connector"></div>
+        <div class="tree-hline"></div>
+        <div class="tree-row">
+          <div class="tree-node" id="tn-rect" onclick="selectNode('rect')">
+            <div class="node-shape"><svg width="56" height="38"><rect x="3" y="3" width="50" height="32" rx="2" fill="#2DD4A8" fill-opacity="0.2" stroke="#2DD4A8" stroke-width="2.5"/></svg></div>
+            <div class="node-name">Rectangle</div>
+            <div class="node-sides">4 right angles</div>
+          </div>
+          <div class="tree-node" id="tn-rhom" onclick="selectNode('rhom')">
+            <div class="node-shape"><svg width="48" height="48"><polygon points="24,4 44,24 24,44 4,24" fill="#EC4899" fill-opacity="0.2" stroke="#EC4899" stroke-width="2.5"/></svg></div>
+            <div class="node-name">Rhombus</div>
+            <div class="node-sides">4 equal sides</div>
+          </div>
+        </div>
+        <div class="tree-connector"></div>
+        <div class="tree-row">
+          <div class="tree-node" id="tn-sq" onclick="selectNode('sq')">
+            <div class="node-shape"><svg width="42" height="42"><rect x="3" y="3" width="36" height="36" rx="2" fill="#FFD93D" fill-opacity="0.3" stroke="#EAB308" stroke-width="2.5"/></svg></div>
+            <div class="node-name">Square</div>
+            <div class="node-sides">4 equal sides + 4 right angles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--mint),var(--teal))"></div>
+      <h2>🔍 Property Explorer</h2>
+      <p class="desc">See which properties each quadrilateral has. The green checks show what makes each shape special!</p>
+      <div class="prop-explorer">
+        <div class="prop-shape-display" id="propShapeArea">
+          <svg width="120" height="100" id="propSVG"><polygon points="15,8 108,16 98,88 8,80" fill="#3B82F6" fill-opacity="0.15" stroke="#3B82F6" stroke-width="3"/></svg>
+          <div class="shape-label" id="propLabel">Quadrilateral</div>
+        </div>
+        <div class="prop-checklist" id="propChecklist"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--peach),var(--sun))"></div>
+      <h2>🎯 Shape Sorter</h2>
+      <p class="desc">Drag each shape to the correct bucket! Think about the properties you just learned.</p>
+      <div class="sort-game" id="sortGame"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--sky),var(--mint))"></div>
+      <h2>🧠 Quadrilateral Quiz</h2>
+      <p class="desc">Test your knowledge of four-sided shapes!</p>
+      <div class="progress-track"><div class="progress-bar sky" id="quadProg" style="width:0%"></div></div>
+      <div id="quadQuizArea"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-shapes">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--coral),var(--pink))"></div>
+      <h2>🔷 Shape Reference</h2>
+      <p class="desc">Every shape has a name based on how many sides it has.</p>
+      <div class="learn-grid" id="shapeGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--coral),var(--peach))"></div>
+      <h2>🧠 Shape Quiz</h2>
+      <p class="desc">Identify shapes by their sides and properties.</p>
+      <div class="progress-track"><div class="progress-bar coral" id="shapesProg" style="width:0%"></div></div>
+      <div id="shapesQuizArea"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-perimeter">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--mint),var(--teal))"></div>
+      <h2>📏 What is Perimeter?</h2>
+      <p class="desc">Perimeter is the total distance around a shape. Just add up every side!</p>
+      <div class="quiz-visual">
+        <svg width="200" height="140" viewBox="0 0 200 140">
+          <rect x="20" y="20" width="160" height="100" fill="#2DD4A8" fill-opacity="0.12" stroke="#2DD4A8" stroke-width="3" rx="4" stroke-dasharray="8,4"/>
+          <text x="100" y="15" text-anchor="middle" font-family="Baloo 2" font-size="18" fill="#0D9488" font-weight="700">8</text>
+          <text x="190" y="75" text-anchor="start" font-family="Baloo 2" font-size="18" fill="#0D9488" font-weight="700">5</text>
+          <text x="100" y="138" text-anchor="middle" font-family="Baloo 2" font-size="18" fill="#0D9488" font-weight="700">8</text>
+          <text x="5" y="75" text-anchor="end" font-family="Baloo 2" font-size="18" fill="#0D9488" font-weight="700">5</text>
+          <text x="100" y="78" text-anchor="middle" font-family="Baloo 2" font-size="15" fill="#0D9488" font-weight="600">8+5+8+5 = 26</text>
+        </svg>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--mint),var(--sky))"></div>
+      <h2>🧮 Perimeter Quiz</h2>
+      <p class="desc">Add up the sides to find each perimeter.</p>
+      <div class="progress-track"><div class="progress-bar mint" id="perimProg" style="width:0%"></div></div>
+      <div id="perimQuizArea"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-area">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--lilac),var(--pink))"></div>
+      <h2>🟪 What is Area?</h2>
+      <p class="desc">Area is the space inside a shape. For rectangles, multiply length times width! Click the squares below to explore.</p>
+      <div class="area-grid-wrap">
+        <div class="area-grid" id="areaDemo" style="grid-template-columns:repeat(6,38px)"></div>
+        <div class="area-label">Filled: <strong id="areaCount">0</strong> square units</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--lilac),var(--sky))"></div>
+      <h2>🧮 Area Quiz</h2>
+      <p class="desc">Find the area of each rectangle.</p>
+      <div class="progress-track"><div class="progress-bar lilac" id="areaProg" style="width:0%"></div></div>
+      <div id="areaQuizArea"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-angles">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--peach),var(--sun))"></div>
+      <h2>📐 Angle Types</h2>
+      <p class="desc">An angle is the opening where two lines meet. The size of the opening tells you its type!</p>
+      <div class="learn-grid" id="angleGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--peach),var(--coral))"></div>
+      <h2>🧠 Angle Quiz</h2>
+      <p class="desc">Name each angle type.</p>
+      <div class="progress-track"><div class="progress-bar peach" id="anglesProg" style="width:0%"></div></div>
+      <div id="anglesQuizArea"></div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-fractions">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--pink),var(--lilac))"></div>
+      <h2>🍕 Shapes & Fractions</h2>
+      <p class="desc">Shapes can be divided into equal parts to show fractions!</p>
+      <div class="frac-row" id="fracDemo"></div>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--pink),var(--coral))"></div>
+      <h2>🧠 Fraction Quiz</h2>
+      <p class="desc">What fraction of the shape is colored?</p>
+      <div class="progress-track"><div class="progress-bar pink" id="fracProg" style="width:0%"></div></div>
+      <div id="fracQuizArea"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let stars=0, streak=0, level=1, totalCorrect=0;
+const qs = { quad:{i:0,n:8}, shapes:{i:0,n:6}, perim:{i:0,n:5}, area:{i:0,n:5}, angles:{i:0,n:5}, frac:{i:0,n:5} };
+const bank = { perim:[], area:[], angles:[], frac:[] };
+
+function addStar(ok){
+  if(ok){ stars++; streak++; totalCorrect++; if(totalCorrect%8===0) level++; }
+  else streak=0;
+  document.getElementById('sc-stars').textContent=stars;
+  document.getElementById('sc-streak').textContent=streak;
+  document.getElementById('sc-level').textContent=level;
+  const pill = document.getElementById(ok?'pillStars':'pillStreak');
+  pill.classList.add('glow');
+  setTimeout(()=>pill.classList.remove('glow'),500);
+}
+
+function go(t){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-t="${t}"]`).classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+t).classList.add('active');
+}
+
+const quadProps = {
+  quad:  { label:'Quadrilateral', color:'#3B82F6', svg:'<svg width="120" height="100"><polygon points="15,8 108,16 98,88 8,80" fill="#3B82F6" fill-opacity="0.15" stroke="#3B82F6" stroke-width="3"/></svg>',
+           props:[0,0,0,0,0,0] },
+  trap:  { label:'Trapezoid', color:'#FB923C', svg:'<svg width="120" height="90"><polygon points="28,8 92,8 112,82 8,82" fill="#FB923C" fill-opacity="0.15" stroke="#FB923C" stroke-width="3"/></svg>',
+           props:[1,0,0,0,0,0] },
+  pgram: { label:'Parallelogram', color:'#A78BFA', svg:'<svg width="130" height="80"><polygon points="24,6 118,6 106,74 12,74" fill="#A78BFA" fill-opacity="0.15" stroke="#A78BFA" stroke-width="3"/></svg>',
+           props:[1,1,1,0,0,0] },
+  rect:  { label:'Rectangle', color:'#2DD4A8', svg:'<svg width="130" height="80"><rect x="6" y="6" width="118" height="68" rx="3" fill="#2DD4A8" fill-opacity="0.15" stroke="#2DD4A8" stroke-width="3"/></svg>',
+           props:[1,1,1,1,0,0] },
+  rhom:  { label:'Rhombus', color:'#EC4899', svg:'<svg width="100" height="100"><polygon points="50,6 94,50 50,94 6,50" fill="#EC4899" fill-opacity="0.15" stroke="#EC4899" stroke-width="3"/></svg>',
+           props:[1,1,1,0,1,0] },
+  sq:    { label:'Square', color:'#EAB308', svg:'<svg width="90" height="90"><rect x="6" y="6" width="78" height="78" rx="3" fill="#FFD93D" fill-opacity="0.25" stroke="#EAB308" stroke-width="3"/></svg>',
+           props:[1,1,1,1,1,1] },
+};
+const propLabels = [
+  'At least 1 pair of parallel sides',
+  '2 pairs of parallel sides',
+  'Opposite sides are equal',
+  '4 right angles (90°)',
+  'All 4 sides are equal',
+  'It is BOTH a rectangle AND a rhombus'
+];
+
+function selectNode(key){
+  document.querySelectorAll('.tree-node').forEach(n=>n.classList.remove('selected'));
+  document.getElementById('tn-'+key).classList.add('selected');
+  const d = quadProps[key];
+  document.getElementById('propSVG').outerHTML = d.svg;
+  const svgEl = document.querySelector('.prop-shape-display svg');
+  svgEl.id = 'propSVG';
+  document.getElementById('propLabel').textContent = d.label;
+  document.getElementById('propLabel').style.color = d.color;
+  const cl = document.getElementById('propChecklist');
+  cl.innerHTML = propLabels.map((lbl,i)=>{
+    const on = d.props[i];
+    return `<div class="prop-row ${on?'active':''}">
+      <div class="prop-check">${on?'✓':''}</div>
+      <span>${lbl}</span>
+    </div>`;
+  }).join('');
+}
+
+function buildSortGame(){
+  const rounds = [
+    { title: 'Has right angles vs No right angles',
+      buckets: ['Has Right Angles','No Right Angles'],
+      shapes: [
+        {name:'Square',emoji:'🟨',bucket:0},{name:'Rectangle',emoji:'🟩',bucket:0},
+        {name:'Rhombus',emoji:'🔷',bucket:1},{name:'Parallelogram',emoji:'🟪',bucket:1},
+        {name:'Trapezoid',emoji:'🔶',bucket:1}
+      ]},
+    { title: 'All sides equal vs Not all sides equal',
+      buckets: ['All Sides Equal','Not All Equal'],
+      shapes: [
+        {name:'Square',emoji:'🟨',bucket:0},{name:'Rhombus',emoji:'🔷',bucket:0},
+        {name:'Rectangle',emoji:'🟩',bucket:1},{name:'Trapezoid',emoji:'🔶',bucket:1},
+        {name:'Parallelogram',emoji:'🟪',bucket:1}
+      ]},
+    { title: 'Has parallel sides vs Only 1 pair parallel',
+      buckets: ['2 Pairs Parallel','1 Pair Parallel'],
+      shapes: [
+        {name:'Square',emoji:'🟨',bucket:0},{name:'Rectangle',emoji:'🟩',bucket:0},
+        {name:'Rhombus',emoji:'🔷',bucket:0},{name:'Parallelogram',emoji:'🟪',bucket:0},
+        {name:'Trapezoid',emoji:'🔶',bucket:1}
+      ]},
+  ];
+  let ri = 0;
+  const container = document.getElementById('sortGame');
+
+  function renderRound(){
+    const r = rounds[ri];
+    const shuffled = [...r.shapes].sort(()=>Math.random()-0.5);
+    container.innerHTML = `
+      <p style="font-family:'Baloo 2';font-weight:700;font-size:1.05rem;margin-bottom:12px;text-align:center">${r.title}</p>
+      <div class="sort-shapes" id="sortTray">${shuffled.map((s,i)=>`<div class="drag-shape" draggable="true" data-idx="${i}" data-bucket="${s.bucket}">${s.name}</div>`).join('')}</div>
+      <div class="sort-buckets">
+        ${r.buckets.map((b,bi)=>`<div class="sort-bucket" data-bi="${bi}"><div class="bucket-label">${b}</div><div class="bucket-items" id="bucket-${bi}"></div></div>`).join('')}
+      </div>
+      <div style="text-align:center">
+        <button class="next-btn sky" id="sortCheck" onclick="checkSort()" style="display:inline-block">Check Answers ✓</button>
+        <button class="next-btn sky" id="sortNext" onclick="nextSort()" style="display:none">Next Round ➜</button>
+      </div>
+      <div class="feedback-box" id="sortFb"></div>
+    `;
+    container.querySelectorAll('.drag-shape').forEach(el=>{
+      el.addEventListener('dragstart',e=>{
+        e.dataTransfer.setData('text/plain',el.dataset.idx+'|'+el.dataset.bucket);
+        el.style.opacity='0.5';
+      });
+      el.addEventListener('dragend',()=>el.style.opacity='1');
+      let touchClone=null, startX, startY;
+      el.addEventListener('touchstart',e=>{
+        const t=e.touches[0];
+        startX=t.clientX; startY=t.clientY;
+      },{passive:true});
+      el.addEventListener('touchend',e=>{
+        const t=e.changedTouches[0];
+        const target=document.elementFromPoint(t.clientX,t.clientY);
+        const bucket=target?.closest('.sort-bucket');
+        if(bucket){
+          const bi=bucket.dataset.bi;
+          bucket.querySelector('.bucket-items').appendChild(el);
+        }
+      });
+    });
+    container.querySelectorAll('.sort-bucket').forEach(bk=>{
+      bk.addEventListener('dragover',e=>{e.preventDefault();bk.classList.add('drag-over');});
+      bk.addEventListener('dragleave',()=>bk.classList.remove('drag-over'));
+      bk.addEventListener('drop',e=>{
+        e.preventDefault();
+        bk.classList.remove('drag-over');
+        const data=e.dataTransfer.getData('text/plain');
+        const el=container.querySelector(`.drag-shape[data-idx="${data.split('|')[0]}"]`);
+        if(el) bk.querySelector('.bucket-items').appendChild(el);
+      });
+    });
+  }
+
+  window.checkSort = function(){
+    let allRight=true;
+    container.querySelectorAll('.sort-bucket').forEach(bk=>{
+      const bi=bk.dataset.bi;
+      bk.querySelectorAll('.drag-shape').forEach(s=>{
+        if(s.dataset.bucket===bi){ s.classList.add('correct-placed'); s.classList.remove('wrong-placed'); }
+        else { s.classList.add('wrong-placed'); s.classList.remove('correct-placed'); allRight=false; }
+      });
+    });
+    document.getElementById('sortTray').querySelectorAll('.drag-shape').forEach(s=>{
+      s.classList.add('wrong-placed'); allRight=false;
+    });
+    const fb=document.getElementById('sortFb');
+    if(allRight){
+      fb.className='feedback-box show correct';
+      fb.innerHTML='⭐ Perfect sorting!';
+      addStar(true);
+    } else {
+      fb.className='feedback-box show wrong';
+      fb.innerHTML='Some shapes are in the wrong bucket. Try again or go to the next round!';
+    }
+    document.getElementById('sortCheck').style.display='none';
+    document.getElementById('sortNext').style.display='inline-block';
+  };
+  window.nextSort = function(){
+    ri = (ri+1) % rounds.length;
+    renderRound();
+  };
+  renderRound();
+}
+
+const quadQuestions = [
+  { q:'Which quadrilateral has 4 equal sides AND 4 right angles?', opts:['Rectangle','Rhombus','Square','Trapezoid'], ans:2,
+    explain:'A square is the only shape with both all equal sides and all right angles.' },
+  { q:'A shape has 2 pairs of parallel sides but its angles are NOT 90°. What could it be?', opts:['Rectangle','Parallelogram','Square','Trapezoid'], ans:1,
+    explain:'A parallelogram has 2 pairs of parallel sides and its angles can be any size, not just 90°.' },
+  { q:'True or false: Every square is also a rectangle.', opts:['True','False'], ans:0,
+    explain:'Yes! A square has 4 right angles and opposite sides equal, so it meets every rule for being a rectangle.' },
+  { q:'True or false: Every rectangle is also a square.', opts:['True','False'], ans:1,
+    explain:'No! A rectangle only needs 4 right angles. Its sides do not have to all be equal.' },
+  { q:'A rhombus has 4 equal sides. How is it different from a square?', opts:['A rhombus has 5 sides','A rhombus might not have right angles','A rhombus is not a quadrilateral','There is no difference'], ans:1,
+    explain:'A rhombus has 4 equal sides but its angles can be tilted, not necessarily 90°.' },
+  { q:'Which shape has exactly ONE pair of parallel sides?', opts:['Parallelogram','Square','Trapezoid','Rhombus'], ans:2,
+    explain:'A trapezoid is special because it only has one pair of parallel sides.' },
+  { q:'True or false: A square is also a rhombus.', opts:['True','False'], ans:0,
+    explain:'Yes! A square has 4 equal sides, which is exactly the rule for a rhombus.' },
+  { q:'Which property do ALL quadrilaterals share?', opts:['4 right angles','4 equal sides','4 sides and 4 angles','2 pairs of parallel sides'], ans:2,
+    explain:'The only thing every quadrilateral must have is 4 sides and 4 angles.' },
+  { q:'What makes a parallelogram different from a trapezoid?', opts:['It has more sides','It has 2 pairs of parallel sides instead of 1','It has right angles','Its sides are all equal'], ans:1,
+    explain:'A parallelogram has 2 pairs of parallel sides while a trapezoid only has 1 pair.' },
+  { q:'If a shape has 4 right angles but its sides are NOT all the same length, it must be a...', opts:['Square','Rhombus','Rectangle','Trapezoid'], ans:2,
+    explain:'4 right angles with sides of different lengths describes a rectangle (not a square).' },
+];
+
+function loadQuadQuiz(){
+  const s=qs.quad;
+  if(s.i>=s.n){showDone('quadQuizArea','quadProg','quad');return;}
+  const qi=s.i%quadQuestions.length;
+  document.getElementById('quadProg').style.width=(s.i/s.n*100)+'%';
+  renderMC('quadQuizArea',quadQuestions[qi],'quad','sky');
+}
+
+const shapeDefs=[
+  {name:'Triangle',sides:3,svg:'<svg width="54" height="50"><polygon points="27,4 4,46 50,46" fill="#FF6B6B" opacity="0.8"/></svg>',info:'3 sides'},
+  {name:'Square',sides:4,svg:'<svg width="44" height="44"><rect x="2" y="2" width="40" height="40" rx="2" fill="#3B82F6" opacity="0.8"/></svg>',info:'4 equal sides'},
+  {name:'Rectangle',sides:4,svg:'<svg width="58" height="38"><rect x="2" y="2" width="54" height="34" rx="2" fill="#2DD4A8" opacity="0.8"/></svg>',info:'2 pairs equal'},
+  {name:'Pentagon',sides:5,svg:'<svg width="54" height="52"><polygon points="27,3 52,20 43,50 11,50 2,20" fill="#A78BFA" opacity="0.8"/></svg>',info:'5 sides'},
+  {name:'Hexagon',sides:6,svg:'<svg width="54" height="48"><polygon points="14,3 40,3 52,24 40,45 14,45 2,24" fill="#FB923C" opacity="0.8"/></svg>',info:'6 sides'},
+  {name:'Octagon',sides:8,svg:'<svg width="54" height="54"><polygon points="17,3 37,3 51,17 51,37 37,51 17,51 3,37 3,17" fill="#EC4899" opacity="0.8"/></svg>',info:'8 sides'},
+];
+function buildShapeGrid(){
+  document.getElementById('shapeGrid').innerHTML=shapeDefs.map(s=>`<div class="learn-item">${s.svg}<div class="l-name">${s.name}</div><div class="l-info">${s.info}</div></div>`).join('');
+}
+const shapeQs=[
+  {q:'Which shape has exactly 3 sides?',opts:['Triangle','Square','Pentagon','Hexagon'],ans:0,explain:'Triangles always have 3 sides and 3 angles.'},
+  {q:'How many sides does a hexagon have?',opts:['4','5','6','8'],ans:2,explain:'Hex means 6, so a hexagon has 6 sides.'},
+  {q:'Which shape is NOT a quadrilateral?',opts:['Square','Rectangle','Triangle','Rhombus'],ans:2,explain:'A triangle has 3 sides, not 4, so it is not a quadrilateral.'},
+  {q:'A stop sign is shaped like which polygon?',opts:['Hexagon','Pentagon','Octagon','Square'],ans:2,explain:'Stop signs are octagons with 8 sides.'},
+  {q:'Which shape has 5 sides?',opts:['Hexagon','Pentagon','Octagon','Triangle'],ans:1,explain:'Penta means 5, so a pentagon has 5 sides.'},
+  {q:'How many angles does a triangle have?',opts:['2','3','4','5'],ans:1,explain:'A triangle always has exactly 3 angles.'},
+];
+function loadShapesQuiz(){
+  const s=qs.shapes;
+  if(s.i>=s.n){showDone('shapesQuizArea','shapesProg','shapes');return;}
+  document.getElementById('shapesProg').style.width=(s.i/s.n*100)+'%';
+  renderMC('shapesQuizArea',shapeQs[s.i%shapeQs.length],'shapes','coral');
+}
+
+function mkPerimQ(){
+  const t=['sq','rect','tri'][Math.floor(Math.random()*3)];
+  let q,ans,svg,explain;
+  if(t==='sq'){
+    const s=2+Math.floor(Math.random()*8);
+    ans=s*4;
+    q=`Find the perimeter of a square with sides of ${s} units.`;
+    explain=`A square has 4 equal sides, so ${s} + ${s} + ${s} + ${s} = ${ans}.`;
+    svg=`<svg width="130" height="130" viewBox="0 0 130 130"><rect x="15" y="15" width="100" height="100" fill="#2DD4A8" fill-opacity="0.12" stroke="#2DD4A8" stroke-width="3" rx="3"/><text x="65" y="12" text-anchor="middle" font-family="Baloo 2" font-size="17" fill="#0D9488" font-weight="700">${s}</text><text x="122" y="70" font-family="Baloo 2" font-size="17" fill="#0D9488" font-weight="700">${s}</text></svg>`;
+  } else if(t==='rect'){
+    const w=3+Math.floor(Math.random()*7), h=2+Math.floor(Math.random()*5);
+    ans=2*(w+h);
+    q=`Find the perimeter of a rectangle: ${w} units wide, ${h} units tall.`;
+    explain=`Add all sides: ${w} + ${h} + ${w} + ${h} = ${ans}.`;
+    svg=`<svg width="170" height="120" viewBox="0 0 170 120"><rect x="15" y="15" width="140" height="90" fill="#2DD4A8" fill-opacity="0.12" stroke="#2DD4A8" stroke-width="3" rx="3"/><text x="85" y="12" text-anchor="middle" font-family="Baloo 2" font-size="17" fill="#0D9488" font-weight="700">${w}</text><text x="163" y="64" font-family="Baloo 2" font-size="17" fill="#0D9488" font-weight="700">${h}</text></svg>`;
+  } else {
+    const a=3+Math.floor(Math.random()*5),b=3+Math.floor(Math.random()*5),c=3+Math.floor(Math.random()*5);
+    ans=a+b+c;
+    q=`A triangle has sides of ${a}, ${b}, and ${c}. What is its perimeter?`;
+    explain=`${a} + ${b} + ${c} = ${ans}.`;
+    svg=`<svg width="150" height="120" viewBox="0 0 150 120"><polygon points="75,10 10,110 140,110" fill="#2DD4A8" fill-opacity="0.12" stroke="#2DD4A8" stroke-width="3"/><text x="38" y="56" font-family="Baloo 2" font-size="15" fill="#0D9488" font-weight="700">${a}</text><text x="112" y="56" font-family="Baloo 2" font-size="15" fill="#0D9488" font-weight="700">${b}</text><text x="75" y="126" text-anchor="middle" font-family="Baloo 2" font-size="15" fill="#0D9488" font-weight="700">${c}</text></svg>`;
+  }
+  const wrongs=new Set();
+  while(wrongs.size<3){const v=ans+Math.floor(Math.random()*11)-5;if(v!==ans&&v>0)wrongs.add(v);}
+  let opts=[ans,...wrongs]; opts.sort(()=>Math.random()-0.5);
+  return {q,opts:opts.map(o=>o+' units'),ans:opts.indexOf(ans),svg,explain};
+}
+function loadPerimQuiz(){
+  const s=qs.perim;
+  if(s.i>=s.n){showDone('perimQuizArea','perimProg','perim');return;}
+  if(!bank.perim[s.i])bank.perim[s.i]=mkPerimQ();
+  document.getElementById('perimProg').style.width=(s.i/s.n*100)+'%';
+  renderMC('perimQuizArea',bank.perim[s.i],'perim','mint');
+}
+
+function buildAreaDemo(){
+  const g=document.getElementById('areaDemo');
+  for(let i=0;i<24;i++){
+    const c=document.createElement('div');
+    c.className='area-cell';
+    c.addEventListener('click',()=>{c.classList.toggle('on');document.getElementById('areaCount').textContent=g.querySelectorAll('.on').length;});
+    g.appendChild(c);
+  }
+}
+function mkAreaQ(){
+  const w=2+Math.floor(Math.random()*6),h=2+Math.floor(Math.random()*4);
+  const ans=w*h;
+  const cs=28,pd=16;
+  const sw=w*cs+pd*2, sh=h*cs+pd*2+20;
+  let cells='';
+  for(let r=0;r<h;r++)for(let c=0;c<w;c++)
+    cells+=`<rect x="${pd+c*cs+1}" y="${pd+r*cs+1}" width="${cs-2}" height="${cs-2}" rx="3" fill="#A78BFA" fill-opacity="0.2" stroke="#A78BFA" stroke-width="1.5"/>`;
+  const svg=`<svg width="${sw}" height="${sh}">${cells}<text x="${sw/2}" y="${sh-2}" text-anchor="middle" font-family="Baloo 2" font-size="14" fill="#7C3AED" font-weight="700">${w} × ${h}</text></svg>`;
+  const explain=`Area = length × width = ${w} × ${h} = ${ans} square units.`;
+  const wrongs=new Set();
+  while(wrongs.size<3){const v=ans+Math.floor(Math.random()*11)-5;if(v!==ans&&v>0)wrongs.add(v);}
+  let opts=[ans,...wrongs];opts.sort(()=>Math.random()-0.5);
+  return {q:`What is the area of this ${w} × ${h} rectangle?`,opts:opts.map(o=>o+' sq units'),ans:opts.indexOf(ans),svg,explain};
+}
+function loadAreaQuiz(){
+  const s=qs.area;
+  if(s.i>=s.n){showDone('areaQuizArea','areaProg','area');return;}
+  if(!bank.area[s.i])bank.area[s.i]=mkAreaQ();
+  document.getElementById('areaProg').style.width=(s.i/s.n*100)+'%';
+  renderMC('areaQuizArea',bank.area[s.i],'area','lilac');
+}
+
+function drawAng(deg,color,sz=70){
+  const cx=sz/2,cy=sz/2,r=sz/2-8;
+  const rad=(Math.PI/180)*(360-deg);
+  const ex=cx+r*Math.cos(rad),ey=cy+r*Math.sin(rad);
+  const sq=deg===90?`<rect x="${cx}" y="${cy-12}" width="12" height="12" fill="none" stroke="${color}" stroke-width="2"/>`:'';
+  return `<svg width="${sz}" height="${sz}"><line x1="${cx}" y1="${cy}" x2="${cx+r}" y2="${cy}" stroke="${color}" stroke-width="3" stroke-linecap="round"/><line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${color}" stroke-width="3" stroke-linecap="round"/>${sq}<circle cx="${cx}" cy="${cy}" r="3" fill="${color}"/></svg>`;
+}
+const angleDefs=[
+  {name:'Right Angle',info:'Exactly 90°',deg:90,color:'#3B82F6'},
+  {name:'Acute Angle',info:'Less than 90°',deg:45,color:'#2DD4A8'},
+  {name:'Obtuse Angle',info:'More than 90°',deg:135,color:'#FF6B6B'},
+  {name:'Straight Angle',info:'Exactly 180°',deg:180,color:'#A78BFA'},
+];
+function buildAngleGrid(){
+  document.getElementById('angleGrid').innerHTML=angleDefs.map(a=>`<div class="learn-item">${drawAng(a.deg,a.color)}<div class="l-name">${a.name}</div><div class="l-info">${a.info}</div></div>`).join('');
+}
+function mkAngleQ(){
+  const acute=15+Math.floor(Math.random()*65), obtuse=95+Math.floor(Math.random()*75);
+  const picks=[{deg:90,label:'Right Angle',color:'#3B82F6'},{deg:acute,label:'Acute Angle',color:'#2DD4A8'},{deg:obtuse,label:'Obtuse Angle',color:'#FF6B6B'}];
+  const p=picks[Math.floor(Math.random()*3)];
+  const svg=drawAng(p.deg,p.color,120);
+  const opts=['Right Angle','Acute Angle','Obtuse Angle','Straight Angle'];
+  const explain=p.label==='Right Angle'?'A right angle is exactly 90°.':p.label==='Acute Angle'?`${p.deg}° is less than 90°, so it is acute.`:`${p.deg}° is more than 90°, so it is obtuse.`;
+  return {q:`What type of angle is ${p.deg}°?`,opts,ans:opts.indexOf(p.label),svg,explain};
+}
+function loadAnglesQuiz(){
+  const s=qs.angles;
+  if(s.i>=s.n){showDone('anglesQuizArea','anglesProg','angles');return;}
+  if(!bank.angles[s.i])bank.angles[s.i]=mkAngleQ();
+  document.getElementById('anglesProg').style.width=(s.i/s.n*100)+'%';
+  renderMC('anglesQuizArea',bank.angles[s.i],'angles','peach');
+}
+
+function drawPie(parts,filled,sz=100){
+  const cx=sz/2,cy=sz/2,r=sz/2-4;
+  const cols=['#FF6B6B','#3B82F6','#2DD4A8','#A78BFA','#FB923C','#EC4899','#14B8A6','#EAB308'];
+  let p='';
+  for(let i=0;i<parts;i++){
+    const a1=(2*Math.PI*i)/parts-Math.PI/2, a2=(2*Math.PI*(i+1))/parts-Math.PI/2;
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1),x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const lg=(a2-a1>Math.PI)?1:0;
+    const f=i<filled?cols[i%cols.length]:'#F1F5F9';
+    const o=i<filled?'0.75':'1';
+    p+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${lg},1 ${x2},${y2} Z" fill="${f}" fill-opacity="${o}" stroke="white" stroke-width="2.5"/>`;
+  }
+  return `<svg width="${sz}" height="${sz}">${p}</svg>`;
+}
+function buildFracDemo(){
+  const demos=[{p:2,f:1,l:'1/2'},{p:3,f:1,l:'1/3'},{p:4,f:3,l:'3/4'},{p:6,f:2,l:'2/6'}];
+  document.getElementById('fracDemo').innerHTML=demos.map(d=>`<div class="frac-item">${drawPie(d.p,d.f,100)}<div class="frac-label">${d.l}</div></div>`).join('');
+}
+function mkFracQ(){
+  const parts=[2,3,4,6,8][Math.floor(Math.random()*5)];
+  const filled=1+Math.floor(Math.random()*(parts-1));
+  const svg=drawPie(parts,filled,140);
+  const correct=`${filled}/${parts}`;
+  const wrongs=new Set();
+  while(wrongs.size<3){const wf=1+Math.floor(Math.random()*parts),wp=[2,3,4,6,8][Math.floor(Math.random()*5)];const w=`${wf}/${wp}`;if(w!==correct)wrongs.add(w);}
+  let opts=[correct,...wrongs];opts.sort(()=>Math.random()-0.5);
+  const explain=`${filled} out of ${parts} equal parts are colored, so the fraction is ${filled}/${parts}.`;
+  return {q:'What fraction of this shape is colored?',opts,ans:opts.indexOf(correct),svg,explain};
+}
+function loadFracQuiz(){
+  const s=qs.frac;
+  if(s.i>=s.n){showDone('fracQuizArea','fracProg','frac');return;}
+  if(!bank.frac[s.i])bank.frac[s.i]=mkFracQ();
+  document.getElementById('fracProg').style.width=(s.i/s.n*100)+'%';
+  renderMC('fracQuizArea',bank.frac[s.i],'frac','pink');
+}
+
+function renderMC(containerId, qd, sectionKey, colorClass){
+  const c=document.getElementById(containerId);
+  const vis=qd.svg?`<div class="quiz-visual">${qd.svg}</div>`:'';
+  c.innerHTML=`
+    <div class="quiz-q">${qd.q}</div>
+    ${vis}
+    <div class="opts-grid">${qd.opts.map((o,i)=>`<button class="opt-btn" onclick="pick(this,${i},${qd.ans},'${sectionKey}','${colorClass}')">${o}</button>`).join('')}</div>
+    <div class="feedback-box" id="fb-${sectionKey}"></div>
+    <button class="next-btn ${colorClass}" id="nxt-${sectionKey}" onclick="nxt('${sectionKey}')">Next ➜</button>
+  `;
+}
+
+function pick(btn,i,ans,sk,cc){
+  const btns=btn.parentElement.querySelectorAll('.opt-btn');
+  if([...btns].some(b=>b.classList.contains('correct')||b.classList.contains('wrong')))return;
+  btns.forEach(b=>b.style.pointerEvents='none');
+  const fb=document.getElementById('fb-'+sk);
+  const qd=(sk==='quad'?quadQuestions[qs[sk].i%quadQuestions.length]:sk==='shapes'?shapeQs[qs[sk].i%shapeQs.length]:bank[sk]?.[qs[sk].i]);
+  const explainTxt=qd?.explain||'';
+  if(i===ans){
+    btn.classList.add('correct');
+    fb.className='feedback-box show correct';
+    fb.innerHTML=['⭐ Awesome!','🎉 Nailed it!','🚀 You got it!','✨ Amazing!','💪 Brilliant!'][Math.floor(Math.random()*5)]
+      +(explainTxt?`<div class="explain">${explainTxt}</div>`:'');
+    addStar(true);
+  } else {
+    btn.classList.add('wrong');
+    btns[ans].classList.add('correct');
+    fb.className='feedback-box show wrong';
+    fb.innerHTML='Not quite!'+(explainTxt?`<div class="explain">${explainTxt}</div>`:'');
+    addStar(false);
+  }
+  document.getElementById('nxt-'+sk).classList.add('show');
+}
+
+function nxt(sk){
+  qs[sk].i++;
+  const loaders={quad:loadQuadQuiz,shapes:loadShapesQuiz,perim:loadPerimQuiz,area:loadAreaQuiz,angles:loadAnglesQuiz,frac:loadFracQuiz};
+  loaders[sk]();
+}
+
+function showDone(cid,pid,sk){
+  document.getElementById(pid).style.width='100%';
+  const colorMap={quad:'sky',shapes:'coral',perim:'mint',area:'lilac',angles:'peach',frac:'pink'};
+  const cc=colorMap[sk]||'sky';
+  document.getElementById(cid).innerHTML=`
+    <div style="text-align:center;padding:28px 0">
+      <div style="font-size:3.2rem;margin-bottom:10px">🏆</div>
+      <div class="quiz-q">Section Complete!</div>
+      <p style="color:var(--text-mid);margin-bottom:18px;font-weight:600">Amazing work! You mastered this section.</p>
+      <button class="next-btn ${cc} show" onclick="resetSec('${sk}')">Play Again 🔄</button>
+    </div>`;
+}
+function resetSec(sk){
+  qs[sk].i=0;
+  if(bank[sk])bank[sk]=[];
+  const loaders={quad:loadQuadQuiz,shapes:loadShapesQuiz,perim:loadPerimQuiz,area:loadAreaQuiz,angles:loadAnglesQuiz,frac:loadFracQuiz};
+  loaders[sk]();
+}
+
+selectNode('quad');
+buildSortGame();
+loadQuadQuiz();
+buildShapeGrid();
+loadShapesQuiz();
+loadPerimQuiz();
+buildAreaDemo();
+loadAreaQuiz();
+buildAngleGrid();
+loadAnglesQuiz();
+buildFracDemo();
+loadFracQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral: #FF6B6B;
+  --sky: #4ECDC4;
+  --mint: #2ECC71;
+  --lilac: #A48BDB;
+  --peach: #FFB07C;
+  --pink: #FF6B9D;
+  --gold: #F7DC6F;
+  --blue: #3FC1F0;
+  --orange: #FB923C;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #2D3436;
+  --text-light: #636E72;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+h1, h2, h3 { font-family: 'Baloo 2', cursive; }
+
+.hero {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--peach) 100%);
+  padding: 30px 20px 20px;
+  text-align: center;
+  color: white;
+}
+
+.hero h1 { font-size: 2rem; margin-bottom: 4px; }
+.hero p { opacity: 0.9; font-size: 1rem; }
+
+.score-bar {
+  display: flex; justify-content: center; gap: 16px; padding: 12px 20px;
+  background: white; border-bottom: 2px solid #f0ece6; flex-wrap: wrap;
+}
+
+.score-pill {
+  display: flex; align-items: center; gap: 6px; background: #F8F6F2;
+  padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;
+}
+
+.score-pill .emoji { font-size: 1.1rem; }
+.score-pill .val { color: var(--orange); }
+
+.tabs {
+  display: flex; gap: 6px; padding: 16px 20px 0;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+  padding: 10px 20px; border-radius: 12px 12px 0 0; border: none;
+  background: #F0ECE6; font-family: 'Baloo 2', cursive; font-size: 1rem;
+  font-weight: 600; cursor: pointer; white-space: nowrap; color: var(--text-light); transition: all 0.2s;
+}
+
+.tab:hover { background: #E8E3DC; }
+.tab.active { background: white; color: var(--orange); box-shadow: var(--shadow); }
+
+.section { display: none; padding: 20px; max-width: 800px; margin: 0 auto; }
+.section.active { display: block; }
+
+.card {
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 24px; margin-bottom: 20px; border-left: 5px solid var(--orange);
+}
+
+.card.accent-mint { border-left-color: var(--mint); }
+.card.accent-sky { border-left-color: var(--sky); }
+.card.accent-lilac { border-left-color: var(--lilac); }
+.card.accent-coral { border-left-color: var(--coral); }
+.card.accent-blue { border-left-color: var(--blue); }
+
+.card h2 { font-size: 1.4rem; margin-bottom: 8px; }
+.card p { line-height: 1.6; color: var(--text-light); margin-bottom: 12px; }
+
+.progress-track {
+  width: 100%; height: 12px; background: #F0ECE6; border-radius: 6px;
+  overflow: hidden; margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--orange), var(--peach));
+  transition: width 0.5s ease;
+}
+
+.quiz-question {
+  font-family: 'Baloo 2', cursive; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);
+}
+
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+}
+
+.option-btn {
+  padding: 14px; border-radius: var(--radius-sm); border: 2px solid #E8E3DC;
+  background: white; font-family: 'Nunito', sans-serif; font-size: 1.05rem;
+  font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: left;
+}
+
+.option-btn:hover { border-color: var(--orange); background: #FFF7ED; transform: translateY(-1px); }
+.option-btn.correct { border-color: var(--mint); background: #E6F9EE; color: #1B7A3D; animation: pop 0.3s; }
+.option-btn.wrong { border-color: var(--coral); background: #FFE8E8; color: #C0392B; animation: shake 0.3s; }
+.option-btn:disabled { cursor: default; opacity: 0.85; }
+.option-btn:disabled:hover { transform: none; }
+
+@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+.feedback {
+  padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 16px;
+  font-weight: 600; display: none;
+}
+
+.feedback.show { display: block; }
+.feedback.correct { background: #E6F9EE; color: #1B7A3D; border-left: 4px solid var(--mint); }
+.feedback.wrong { background: #FFE8E8; color: #C0392B; border-left: 4px solid var(--coral); }
+
+.btn {
+  padding: 12px 28px; border-radius: var(--radius-sm); border: none;
+  font-family: 'Baloo 2', cursive; font-size: 1.05rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+}
+
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.btn-primary { background: linear-gradient(135deg, var(--orange), var(--peach)); color: white; }
+
+/* Diagram */
+.diagram {
+  text-align: center;
+  margin: 16px 0;
+}
+
+.diagram svg { max-width: 100%; }
+
+/* Info boxes */
+.info-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;
+}
+
+.info-box {
+  padding: 14px; border-radius: var(--radius-sm); background: #F8F6F2;
+}
+
+.info-box .label {
+  font-family: 'Baloo 2', cursive; font-size: 1rem; margin-bottom: 4px;
+}
+
+.info-box .value { font-size: 0.9rem; color: var(--text-light); line-height: 1.5; }
+
+/* Sort activity */
+.sort-container { margin: 16px 0; }
+
+.sort-categories {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+}
+
+.sort-bucket {
+  border: 2px dashed #DDD;
+  border-radius: var(--radius);
+  padding: 12px;
+  min-height: 100px;
+  text-align: center;
+}
+
+.sort-bucket h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.sort-bucket .items { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+
+.sort-items {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px;
+}
+
+.sort-item {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: white;
+  border: 2px solid #E8E3DC;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.sort-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--orange); }
+.sort-item.placed { opacity: 0.4; cursor: default; }
+.sort-item.in-bucket { background: #FFF7ED; border-color: var(--orange); cursor: default; font-size: 0.85rem; padding: 4px 10px; }
+.sort-item.correct-sort { background: #E6F9EE; border-color: var(--mint); }
+.sort-item.wrong-sort { background: #FFE8E8; border-color: var(--coral); }
+
+/* Steps */
+.steps {
+  counter-reset: step;
+  margin: 12px 0;
+}
+
+.step {
+  display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start;
+}
+
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--orange); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.step-text { font-size: 0.95rem; line-height: 1.5; padding-top: 4px; }
+
+.completion {
+  text-align: center; padding: 40px 20px;
+}
+
+.completion h2 { font-size: 2rem; color: var(--orange); }
+.completion .big-emoji { font-size: 4rem; display: block; margin: 16px 0; }
+.completion p { font-size: 1.1rem; color: var(--text-light); }
+
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.5rem; }
+  .options-grid { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .sort-categories { grid-template-columns: 1fr; }
+  .score-bar { gap: 8px; }
+  .score-pill { padding: 4px 10px; font-size: 0.8rem; }
+  .tabs { padding: 12px 12px 0; }
+  .tab { padding: 8px 14px; font-size: 0.9rem; }
+  .section { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🔬 Science Lab</h1>
+  <p>Discover how the world works!</p>
+</div>
+
+<div class="score-bar">
+  <div class="score-pill"><span class="emoji">⭐</span> Stars: <span class="val" id="stars">0</span></div>
+  <div class="score-pill"><span class="emoji">🔥</span> Streak: <span class="val" id="streak">0</span></div>
+  <div class="score-pill"><span class="emoji">🏆</span> Level: <span class="val" id="level">1</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showSection('plant')">🌱 Plant Life</button>
+  <button class="tab" onclick="showSection('animal')">🐾 Animal Groups</button>
+  <button class="tab" onclick="showSection('weather')">🌤️ Weather</button>
+  <button class="tab" onclick="showSection('method')">🔬 Scientific Method</button>
+</div>
+
+<!-- PLANT LIFE -->
+<div class="section active" id="sec-plant">
+  <div class="card accent-mint">
+    <h2 style="color:var(--mint)">🌱 Parts of a Plant</h2>
+    <p>Every plant has important parts that help it survive and grow!</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 300 320" width="280">
+        <!-- Roots -->
+        <path d="M150 240 C140 270 120 290 110 310" stroke="#8B6914" stroke-width="3" fill="none"/>
+        <path d="M150 240 C155 265 160 285 165 310" stroke="#8B6914" stroke-width="3" fill="none"/>
+        <path d="M150 240 C160 270 180 290 190 310" stroke="#8B6914" stroke-width="3" fill="none"/>
+        <path d="M120 280 C115 290 105 295 100 300" stroke="#8B6914" stroke-width="2" fill="none"/>
+        <path d="M180 280 C185 290 195 295 200 300" stroke="#8B6914" stroke-width="2" fill="none"/>
+        <!-- Soil line -->
+        <line x1="60" y1="240" x2="240" y2="240" stroke="#A0845C" stroke-width="2" stroke-dasharray="6,4"/>
+        <!-- Stem -->
+        <rect x="145" y="100" width="10" height="140" rx="3" fill="#4CAF50"/>
+        <!-- Leaves -->
+        <ellipse cx="115" cy="150" rx="35" ry="18" fill="#66BB6A" transform="rotate(-20 115 150)"/>
+        <ellipse cx="185" cy="130" rx="35" ry="18" fill="#66BB6A" transform="rotate(20 185 130)"/>
+        <ellipse cx="120" cy="180" rx="30" ry="15" fill="#81C784" transform="rotate(-15 120 180)"/>
+        <!-- Flower -->
+        <circle cx="150" cy="80" r="12" fill="#FFC107"/>
+        <ellipse cx="150" cy="60" rx="10" ry="14" fill="#FF6B9D"/>
+        <ellipse cx="135" cy="70" rx="10" ry="14" fill="#FF6B9D" transform="rotate(60 135 70)"/>
+        <ellipse cx="165" cy="70" rx="10" ry="14" fill="#FF6B9D" transform="rotate(-60 165 70)"/>
+        <ellipse cx="138" cy="90" rx="10" ry="14" fill="#FF6B9D" transform="rotate(120 138 90)"/>
+        <ellipse cx="162" cy="90" rx="10" ry="14" fill="#FF6B9D" transform="rotate(-120 162 90)"/>
+        <circle cx="150" cy="80" r="8" fill="#FFC107"/>
+        <!-- Labels -->
+        <text x="230" y="78" font-family="Baloo 2" font-size="13" fill="#FF6B9D" font-weight="700">Flower</text>
+        <line x1="165" y1="75" x2="225" y2="75" stroke="#FF6B9D" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="220" y="135" font-family="Baloo 2" font-size="13" fill="#66BB6A" font-weight="700">Leaf</text>
+        <line x1="200" y1="130" x2="218" y2="132" stroke="#66BB6A" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="220" y="200" font-family="Baloo 2" font-size="13" fill="#4CAF50" font-weight="700">Stem</text>
+        <line x1="155" y1="195" x2="218" y2="197" stroke="#4CAF50" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="220" y="270" font-family="Baloo 2" font-size="13" fill="#8B6914" font-weight="700">Roots</text>
+        <line x1="170" y1="265" x2="218" y2="267" stroke="#8B6914" stroke-width="1" stroke-dasharray="3,3"/>
+      </svg>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-box"><div class="label" style="color:#8B6914">🌿 Roots</div><div class="value">Absorb water and nutrients from the soil. They anchor the plant in the ground.</div></div>
+      <div class="info-box"><div class="label" style="color:#4CAF50">🌿 Stem</div><div class="value">Carries water and nutrients between roots and leaves. Supports the plant.</div></div>
+      <div class="info-box"><div class="label" style="color:#66BB6A">🍃 Leaves</div><div class="value">Make food for the plant using sunlight, water, and air (photosynthesis!).</div></div>
+      <div class="info-box"><div class="label" style="color:#FF6B9D">🌸 Flower</div><div class="value">Makes seeds so new plants can grow. Attracts pollinators like bees!</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="color:var(--orange)">📝 Plant Life Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="plant-progress" style="width:0%"></div></div>
+    <div id="plant-quiz-area"></div>
+    <div class="feedback" id="plant-feedback"></div>
+    <div id="plant-completion" class="completion hidden">
+      <span class="big-emoji">🌱</span>
+      <h2>Plant Pro!</h2>
+      <p id="plant-score-text"></p>
+      <button class="btn btn-primary" onclick="initPlantQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANIMAL GROUPS -->
+<div class="section" id="sec-animal">
+  <div class="card accent-sky">
+    <h2 style="color:var(--sky)">🐾 Animal Classification</h2>
+    <p>Scientists group animals based on their characteristics. Here are the main groups of vertebrates (animals with backbones):</p>
+    <div class="info-grid">
+      <div class="info-box"><div class="label" style="color:var(--coral)">🐟 Fish</div><div class="value">Live in water, breathe with gills, have scales and fins. Cold-blooded.</div></div>
+      <div class="info-box"><div class="label" style="color:var(--mint)">🐸 Amphibians</div><div class="value">Start life in water, move to land. Moist skin. Cold-blooded. (Frogs, salamanders)</div></div>
+      <div class="info-box"><div class="label" style="color:var(--orange)">🦎 Reptiles</div><div class="value">Dry, scaly skin. Lay eggs on land. Cold-blooded. (Snakes, lizards, turtles)</div></div>
+      <div class="info-box"><div class="label" style="color:var(--sky)">🐦 Birds</div><div class="value">Have feathers, wings, and beaks. Lay eggs. Warm-blooded.</div></div>
+      <div class="info-box"><div class="label" style="color:var(--pink)">🐕 Mammals</div><div class="value">Have fur/hair, feed babies milk. Warm-blooded. (Dogs, whales, humans!)</div></div>
+      <div class="info-box"><div class="label" style="color:var(--lilac)">🐛 Invertebrates</div><div class="value">No backbone! (Insects, spiders, jellyfish, worms) — the biggest group!</div></div>
+    </div>
+  </div>
+
+  <div class="card accent-lilac">
+    <h2 style="color:var(--lilac)">🧩 Sort the Animals!</h2>
+    <p>Drag each animal into the correct group. Click an animal, then click the group it belongs to.</p>
+    <div id="sort-activity">
+      <div class="sort-items" id="sort-items"></div>
+      <div class="sort-categories" id="sort-cats"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button class="btn btn-primary" id="sort-check-btn" onclick="checkSort()" style="display:none">Check Answers</button>
+        <button class="btn btn-primary" id="sort-reset-btn" onclick="initSort()" style="display:none;margin-left:8px">Try Again</button>
+      </div>
+      <div class="feedback" id="sort-feedback"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="color:var(--orange)">📝 Animal Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="animal-progress" style="width:0%"></div></div>
+    <div id="animal-quiz-area"></div>
+    <div class="feedback" id="animal-feedback"></div>
+    <div id="animal-completion" class="completion hidden">
+      <span class="big-emoji">🐾</span>
+      <h2>Animal Expert!</h2>
+      <p id="animal-score-text"></p>
+      <button class="btn btn-primary" onclick="initAnimalQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER -->
+<div class="section" id="sec-weather">
+  <div class="card accent-blue">
+    <h2 style="color:var(--blue)">🌤️ Weather vs. Climate</h2>
+    <p><strong>Weather</strong> is what's happening outside RIGHT NOW (sunny, rainy, snowy). It changes every day!</p>
+    <p><strong>Climate</strong> is the USUAL weather in a place over a long time. Arizona has a hot, dry climate. Alaska has a cold climate.</p>
+    <div class="info-grid">
+      <div class="info-box"><div class="label" style="color:var(--gold)">☀️ Temperature</div><div class="value">How hot or cold the air is. Measured in degrees (°F or °C).</div></div>
+      <div class="info-box"><div class="label" style="color:var(--blue)">💧 Precipitation</div><div class="value">Water falling from the sky: rain, snow, sleet, or hail.</div></div>
+      <div class="info-box"><div class="label" style="color:var(--text-light)">💨 Wind</div><div class="value">Moving air. Can be calm, breezy, or very strong (hurricanes!).</div></div>
+      <div class="info-box"><div class="label" style="color:#AAA">☁️ Clouds</div><div class="value">Made of tiny water droplets. Different shapes tell us about weather!</div></div>
+    </div>
+  </div>
+
+  <div class="card accent-coral">
+    <h2 style="color:var(--coral)">☁️ Cloud Types</h2>
+    <div class="info-grid">
+      <div class="info-box"><div class="label" style="color:var(--text-light)">Cumulus ☁️</div><div class="value">White, fluffy, like cotton balls. Usually mean fair weather!</div></div>
+      <div class="info-box"><div class="label" style="color:#888">Stratus 🌫️</div><div class="value">Flat, gray layers covering the sky. Can bring drizzle or light rain.</div></div>
+      <div class="info-box"><div class="label" style="color:var(--blue)">Cirrus 🪶</div><div class="value">Thin, wispy, high up in the sky. Made of ice crystals!</div></div>
+      <div class="info-box"><div class="label" style="color:var(--text)">Cumulonimbus ⛈️</div><div class="value">Tall, dark storm clouds. Bring thunderstorms, heavy rain, even hail!</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="color:var(--orange)">📝 Weather Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="weather-progress" style="width:0%"></div></div>
+    <div id="weather-quiz-area"></div>
+    <div class="feedback" id="weather-feedback"></div>
+    <div id="weather-completion" class="completion hidden">
+      <span class="big-emoji">🌤️</span>
+      <h2>Weather Watcher!</h2>
+      <p id="weather-score-text"></p>
+      <button class="btn btn-primary" onclick="initWeatherQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCIENTIFIC METHOD -->
+<div class="section" id="sec-method">
+  <div class="card">
+    <h2 style="color:var(--orange)">🔬 The Scientific Method</h2>
+    <p>Scientists follow steps to learn about the world. These steps help them figure things out in an organized way!</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Ask a Question</strong> — Wonder about something! "Why do plants lean toward the window?"</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Make a Hypothesis</strong> — Your best guess! "I think plants lean toward light because they need it to grow."</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Experiment</strong> — Test your guess! Put one plant by a window and one in a dark closet.</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Observe & Record</strong> — Watch what happens and write it down! Measure, draw, take notes.</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-text"><strong>Draw a Conclusion</strong> — Was your hypothesis right? What did you learn?</div></div>
+    </div>
+  </div>
+
+  <div class="card accent-lilac">
+    <h2 style="color:var(--lilac)">📝 Scientific Method Quiz</h2>
+    <div class="progress-track"><div class="progress-fill" id="method-progress" style="width:0%"></div></div>
+    <div id="method-quiz-area"></div>
+    <div class="feedback" id="method-feedback"></div>
+    <div id="method-completion" class="completion hidden">
+      <span class="big-emoji">🔬</span>
+      <h2>Junior Scientist!</h2>
+      <p id="method-score-text"></p>
+      <button class="btn btn-primary" onclick="initMethodQuiz()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let stars = 0, streak = 0, level = 1;
+function addStars(n) { stars += n; document.getElementById('stars').textContent = stars; if (stars >= level * 12) { level++; document.getElementById('level').textContent = level; } }
+function bumpStreak() { streak++; document.getElementById('streak').textContent = streak; }
+function resetStreak() { streak = 0; document.getElementById('streak').textContent = streak; }
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  const names = ['plant','animal','weather','method'];
+  document.querySelectorAll('.tab')[names.indexOf(name)].classList.add('active');
+}
+
+// Quiz engine
+function makeQuiz(cfg) {
+  let idx = 0, correct = 0;
+  const qs = [...cfg.questions].sort(() => Math.random() - 0.5).slice(0, cfg.count || 5);
+
+  function show() {
+    if (idx >= qs.length) {
+      document.getElementById(cfg.area).innerHTML = '';
+      document.getElementById(cfg.completion).classList.remove('hidden');
+      document.getElementById(cfg.scoreText).textContent = `You got ${correct} out of ${qs.length} correct!`;
+      addStars(correct * 2);
+      return;
+    }
+    document.getElementById(cfg.progress).style.width = (idx / qs.length * 100) + '%';
+    document.getElementById(cfg.feedback).className = 'feedback';
+    const q = qs[idx];
+    let html = `<div class="quiz-question">Question ${idx+1} of ${qs.length}: ${q.q}</div><div class="options-grid">`;
+    q.options.forEach((opt, i) => {
+      html += `<button class="option-btn" onclick="window['${cfg.check}'](this,${i})">${opt}</button>`;
+    });
+    html += '</div>';
+    document.getElementById(cfg.area).innerHTML = html;
+  }
+
+  window[cfg.check] = function(btn, chosen) {
+    document.querySelectorAll(`#${cfg.area} .option-btn`).forEach(b => b.disabled = true);
+    const fb = document.getElementById(cfg.feedback);
+    const q = qs[idx];
+    if (chosen === q.answer) {
+      btn.classList.add('correct'); fb.className = 'feedback correct show';
+      fb.textContent = '✅ ' + q.explain; correct++; bumpStreak();
+    } else {
+      btn.classList.add('wrong');
+      document.querySelectorAll(`#${cfg.area} .option-btn`)[q.answer].classList.add('correct');
+      fb.className = 'feedback wrong show'; fb.textContent = '💡 ' + q.explain; resetStreak();
+    }
+    idx++;
+    setTimeout(show, 1500);
+  };
+
+  window[cfg.init] = function() {
+    idx = 0; correct = 0;
+    document.getElementById(cfg.completion).classList.add('hidden');
+    qs.length = 0;
+    qs.push(...[...cfg.questions].sort(() => Math.random() - 0.5).slice(0, cfg.count || 5));
+    show();
+  };
+
+  show();
+}
+
+// Plant Quiz
+makeQuiz({
+  area: 'plant-quiz-area', feedback: 'plant-feedback', progress: 'plant-progress',
+  completion: 'plant-completion', scoreText: 'plant-score-text',
+  check: 'checkPlant', init: 'initPlantQuiz', count: 5,
+  questions: [
+    { q: 'What part of the plant absorbs water from the soil?', options: ['Leaves', 'Stem', 'Roots', 'Flower'], answer: 2, explain: 'Roots grow underground and absorb water and nutrients from the soil.' },
+    { q: 'What do leaves use to make food for the plant?', options: ['Soil only', 'Sunlight, water, and air', 'Fertilizer', 'Other plants'], answer: 1, explain: 'Leaves use sunlight, water, and carbon dioxide (from air) to make food — this is called photosynthesis!' },
+    { q: 'What is the main job of a flower?', options: ['To look pretty', 'To make seeds', 'To absorb water', 'To hold the plant up'], answer: 1, explain: 'Flowers make seeds so new plants can grow! Looking pretty helps attract bees for pollination.' },
+    { q: 'What does the stem do?', options: ['Makes food', 'Absorbs water from soil', 'Carries water and nutrients between roots and leaves', 'Makes seeds'], answer: 2, explain: 'The stem is like a highway, carrying water up from the roots and food down from the leaves!' },
+    { q: 'What do plants need to grow?', options: ['Water, sunlight, and air', 'Just water', 'Just sunlight', 'Darkness and cold'], answer: 0, explain: 'Plants need water, sunlight, and air (carbon dioxide) to survive and grow.' },
+    { q: 'What is photosynthesis?', options: ['When plants drink water', 'When plants make food using sunlight', 'When flowers bloom', 'When seeds sprout'], answer: 1, explain: 'Photosynthesis is how plants use sunlight energy to turn water and CO2 into food (sugar)!' },
+    { q: 'Which part of the plant attracts bees and butterflies?', options: ['Roots', 'Stem', 'Leaves', 'Flower'], answer: 3, explain: 'Colorful flowers attract pollinators like bees and butterflies who help spread pollen!' },
+  ]
+});
+
+// Animal Sorting Activity
+let selectedAnimal = null;
+const sortData = {
+  animals: [
+    { name: '🐟 Salmon', group: 'fish' },
+    { name: '🐸 Frog', group: 'amphibian' },
+    { name: '🐍 Snake', group: 'reptile' },
+    { name: '🐦 Robin', group: 'bird' },
+    { name: '🐕 Dog', group: 'mammal' },
+    { name: '🦈 Shark', group: 'fish' },
+    { name: '🦎 Lizard', group: 'reptile' },
+    { name: '🐧 Penguin', group: 'bird' },
+    { name: '🐋 Whale', group: 'mammal' },
+    { name: '🐢 Turtle', group: 'reptile' },
+  ],
+  categories: [
+    { id: 'fish', label: '🐟 Fish', color: 'var(--coral)' },
+    { id: 'amphibian', label: '🐸 Amphibians', color: 'var(--mint)' },
+    { id: 'reptile', label: '🦎 Reptiles', color: 'var(--orange)' },
+    { id: 'bird', label: '🐦 Birds', color: 'var(--sky)' },
+    { id: 'mammal', label: '🐕 Mammals', color: 'var(--pink)' },
+  ]
+};
+
+let placements = {};
+
+function initSort() {
+  placements = {};
+  selectedAnimal = null;
+  document.getElementById('sort-check-btn').style.display = 'none';
+  document.getElementById('sort-reset-btn').style.display = 'none';
+  document.getElementById('sort-feedback').className = 'feedback';
+
+  const shuffled = [...sortData.animals].sort(() => Math.random() - 0.5);
+  let itemsHtml = '';
+  shuffled.forEach((a, i) => {
+    itemsHtml += `<span class="sort-item" data-idx="${i}" data-name="${a.name}" data-group="${a.group}" onclick="selectAnimalItem(this)">${a.name}</span>`;
+  });
+  document.getElementById('sort-items').innerHTML = itemsHtml;
+
+  let catsHtml = '';
+  sortData.categories.forEach(c => {
+    catsHtml += `<div class="sort-bucket" onclick="placeInBucket('${c.id}')" style="border-color:${c.color}"><h3 style="color:${c.color}">${c.label}</h3><div class="items" id="bucket-${c.id}"></div></div>`;
+  });
+  document.getElementById('sort-cats').innerHTML = catsHtml;
+}
+
+function selectAnimalItem(el) {
+  if (el.classList.contains('placed')) return;
+  document.querySelectorAll('.sort-item').forEach(s => s.style.outline = 'none');
+  el.style.outline = '3px solid var(--orange)';
+  selectedAnimal = el;
+}
+
+function placeInBucket(catId) {
+  if (!selectedAnimal) return;
+  const name = selectedAnimal.dataset.name;
+  const group = selectedAnimal.dataset.group;
+  selectedAnimal.classList.add('placed');
+  selectedAnimal.style.outline = 'none';
+
+  const bucket = document.getElementById('bucket-' + catId);
+  const tag = document.createElement('span');
+  tag.className = 'sort-item in-bucket';
+  tag.textContent = name;
+  tag.dataset.group = group;
+  tag.dataset.placed = catId;
+  bucket.appendChild(tag);
+
+  placements[name] = { actual: group, placed: catId };
+  selectedAnimal = null;
+
+  // Check if all placed
+  const allPlaced = document.querySelectorAll('#sort-items .sort-item.placed').length;
+  if (allPlaced === sortData.animals.length) {
+    document.getElementById('sort-check-btn').style.display = 'inline-block';
+  }
+}
+
+function checkSort() {
+  let correct = 0;
+  document.querySelectorAll('.sort-item.in-bucket').forEach(el => {
+    if (el.dataset.group === el.dataset.placed) {
+      el.classList.add('correct-sort');
+      correct++;
+    } else {
+      el.classList.add('wrong-sort');
+    }
+  });
+  const fb = document.getElementById('sort-feedback');
+  if (correct === sortData.animals.length) {
+    fb.className = 'feedback correct show';
+    fb.textContent = `🎉 Perfect! You sorted all ${correct} animals correctly!`;
+    addStars(correct);
+    bumpStreak();
+  } else {
+    fb.className = 'feedback wrong show';
+    fb.textContent = `You got ${correct} out of ${sortData.animals.length} correct. The wrong ones are highlighted in red.`;
+    addStars(correct);
+  }
+  document.getElementById('sort-check-btn').style.display = 'none';
+  document.getElementById('sort-reset-btn').style.display = 'inline-block';
+}
+
+// Animal Quiz
+makeQuiz({
+  area: 'animal-quiz-area', feedback: 'animal-feedback', progress: 'animal-progress',
+  completion: 'animal-completion', scoreText: 'animal-score-text',
+  check: 'checkAnimal', init: 'initAnimalQuiz', count: 5,
+  questions: [
+    { q: 'What group does a frog belong to?', options: ['Reptile', 'Amphibian', 'Mammal', 'Fish'], answer: 1, explain: 'Frogs are amphibians — they start life in water (as tadpoles) and move to land as adults.' },
+    { q: 'What do all mammals have?', options: ['Scales', 'Feathers', 'Fur or hair', 'Gills'], answer: 2, explain: 'All mammals have fur or hair and feed their babies milk. Even whales have some hair!' },
+    { q: 'Which animal is a reptile?', options: ['Frog', 'Eagle', 'Turtle', 'Dolphin'], answer: 2, explain: 'Turtles are reptiles — they have dry, scaly skin and are cold-blooded.' },
+    { q: 'What does "cold-blooded" mean?', options: ['Their blood is freezing', 'Their body temperature changes with their surroundings', 'They live in cold places', 'They don\'t have blood'], answer: 1, explain: 'Cold-blooded animals\' body temperature changes with their environment. They bask in the sun to warm up!' },
+    { q: 'Which is NOT a mammal?', options: ['Whale', 'Bat', 'Penguin', 'Cat'], answer: 2, explain: 'Penguins are birds, not mammals! They have feathers and lay eggs.' },
+    { q: 'How do fish breathe?', options: ['Lungs', 'Gills', 'Skin', 'Nose'], answer: 1, explain: 'Fish breathe through gills, which take oxygen from the water.' },
+  ]
+});
+
+// Weather Quiz
+makeQuiz({
+  area: 'weather-quiz-area', feedback: 'weather-feedback', progress: 'weather-progress',
+  completion: 'weather-completion', scoreText: 'weather-score-text',
+  check: 'checkWeather', init: 'initWeatherQuiz', count: 5,
+  questions: [
+    { q: 'What is the difference between weather and climate?', options: ['They are the same thing', 'Weather is daily; climate is long-term patterns', 'Climate is daily; weather is long-term', 'Weather is only about rain'], answer: 1, explain: 'Weather changes day to day. Climate is the average weather over many years in a place.' },
+    { q: 'Which type of cloud usually means fair weather?', options: ['Cumulonimbus', 'Stratus', 'Cumulus', 'Fog'], answer: 2, explain: 'White, fluffy cumulus clouds on a blue sky usually mean nice weather!' },
+    { q: 'What is precipitation?', options: ['Wind speed', 'Temperature', 'Water falling from clouds', 'Cloud types'], answer: 2, explain: 'Precipitation is any water that falls from clouds — rain, snow, sleet, or hail.' },
+    { q: 'Which cloud brings thunderstorms?', options: ['Cirrus', 'Cumulus', 'Stratus', 'Cumulonimbus'], answer: 3, explain: 'Cumulonimbus clouds are tall, dark storm clouds that bring thunder, lightning, and heavy rain!' },
+    { q: 'What tool measures temperature?', options: ['Rain gauge', 'Thermometer', 'Wind vane', 'Barometer'], answer: 1, explain: 'A thermometer measures how hot or cold the air is in degrees.' },
+    { q: 'What is the water cycle?', options: ['A type of bicycle', 'Water moving between earth and sky over and over', 'A swimming race', 'How fish breathe'], answer: 1, explain: 'The water cycle: water evaporates → forms clouds → falls as rain/snow → collects in rivers/oceans → starts again!' },
+  ]
+});
+
+// Scientific Method Quiz
+makeQuiz({
+  area: 'method-quiz-area', feedback: 'method-feedback', progress: 'method-progress',
+  completion: 'method-completion', scoreText: 'method-score-text',
+  check: 'checkMethod', init: 'initMethodQuiz', count: 5,
+  questions: [
+    { q: 'What is the FIRST step of the scientific method?', options: ['Experiment', 'Ask a question', 'Draw a conclusion', 'Make a hypothesis'], answer: 1, explain: 'First, you wonder about something and ask a question! Curiosity is where science starts.' },
+    { q: 'What is a hypothesis?', options: ['A proven fact', 'A question', 'An educated guess you can test', 'The final answer'], answer: 2, explain: 'A hypothesis is your best guess about what will happen — and you test it with an experiment!' },
+    { q: 'Why do scientists record their observations?', options: ['To waste time', 'To show off', 'So they can remember and share what they found', 'Because the teacher said so'], answer: 2, explain: 'Recording data helps scientists remember results, spot patterns, and share findings with others!' },
+    { q: 'What makes a good experiment?', options: ['Changing everything at once', 'Only changing one thing at a time', 'Guessing without testing', 'Copying someone else'], answer: 1, explain: 'A fair test changes only ONE thing (variable) so you know what caused the result!' },
+    { q: 'If your hypothesis was wrong, what should you do?', options: ['Give up', 'Change your data', 'Learn from it and try a new hypothesis', 'Pretend it was right'], answer: 2, explain: 'Wrong hypotheses are not failures — they teach us something! Real scientists revise and try again.' },
+    { q: 'A conclusion is when you:', options: ['Ask your first question', 'Make your guess', 'Explain what you learned from the experiment', 'Ignore the results'], answer: 2, explain: 'In the conclusion, you explain what happened, whether your hypothesis was right, and what you learned.' },
+  ]
+});
+
+// Init sorting
+initSort();
+</script>
+</body>
+</html>

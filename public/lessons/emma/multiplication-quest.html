@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiplication Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral: #FF6B6B;
+  --sky: #4ECDC4;
+  --mint: #2ECC71;
+  --lilac: #A48BDB;
+  --peach: #FFB07C;
+  --pink: #FF6B9D;
+  --gold: #F7DC6F;
+  --blue: #3FC1F0;
+  --bg: #FEFCF9;
+  --card: #FFFFFF;
+  --text: #2D3436;
+  --text-light: #636E72;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+h1, h2, h3 { font-family: 'Baloo 2', cursive; }
+
+.hero {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--lilac) 100%);
+  padding: 30px 20px 20px;
+  text-align: center;
+  color: white;
+}
+
+.hero h1 { font-size: 2rem; margin-bottom: 4px; }
+.hero p { opacity: 0.9; font-size: 1rem; }
+
+/* Score Bar */
+.score-bar {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: white;
+  border-bottom: 2px solid #f0ece6;
+  flex-wrap: wrap;
+}
+
+.score-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8F6F2;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.score-pill .emoji { font-size: 1.1rem; }
+.score-pill .val { color: var(--lilac); }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 16px 20px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+  padding: 10px 20px;
+  border-radius: 12px 12px 0 0;
+  border: none;
+  background: #F0ECE6;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text-light);
+  transition: all 0.2s;
+}
+
+.tab:hover { background: #E8E3DC; }
+.tab.active { background: white; color: var(--blue); box-shadow: var(--shadow); }
+
+/* Sections */
+.section {
+  display: none;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+  border-left: 5px solid var(--blue);
+}
+
+.card h2 { color: var(--blue); font-size: 1.4rem; margin-bottom: 8px; }
+.card h3 { color: var(--lilac); font-size: 1.1rem; margin-bottom: 8px; }
+.card p { line-height: 1.6; color: var(--text-light); margin-bottom: 12px; }
+
+/* Array Visualizer */
+.array-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.array-controls label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.array-controls select {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 2px solid #E0E0E0;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  background: white;
+  cursor: pointer;
+}
+
+.array-display {
+  display: inline-grid;
+  gap: 6px;
+  padding: 20px;
+  background: #F8F6F2;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.array-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--blue);
+  transition: all 0.3s;
+}
+
+.array-equation {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.5rem;
+  color: var(--lilac);
+  text-align: center;
+  margin: 12px 0;
+}
+
+/* Progress */
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background: #F0ECE6;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--blue), var(--lilac));
+  transition: width 0.5s ease;
+}
+
+/* Quiz */
+.quiz-question {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.quiz-array {
+  display: inline-grid;
+  gap: 4px;
+  padding: 12px;
+  background: #F8F6F2;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.quiz-array .dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--sky);
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.option-btn {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 2px solid #E8E3DC;
+  background: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.option-btn:hover { border-color: var(--blue); background: #F0F9FF; transform: translateY(-1px); }
+.option-btn.correct { border-color: var(--mint); background: #E6F9EE; color: #1B7A3D; animation: pop 0.3s; }
+.option-btn.wrong { border-color: var(--coral); background: #FFE8E8; color: #C0392B; animation: shake 0.3s; }
+.option-btn:disabled { cursor: default; opacity: 0.85; }
+.option-btn:disabled:hover { transform: none; }
+
+@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* Feedback */
+.feedback {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-weight: 600;
+  display: none;
+}
+
+.feedback.show { display: block; }
+.feedback.correct { background: #E6F9EE; color: #1B7A3D; border-left: 4px solid var(--mint); }
+.feedback.wrong { background: #FFE8E8; color: #C0392B; border-left: 4px solid var(--coral); }
+
+/* Buttons */
+.btn {
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.btn-primary { background: linear-gradient(135deg, var(--blue), var(--lilac)); color: white; }
+.btn-success { background: linear-gradient(135deg, var(--mint), var(--sky)); color: white; }
+
+.btn-next { margin-top: 8px; }
+
+/* Fill-in */
+.fill-input {
+  display: inline-block;
+  width: 80px;
+  padding: 8px 12px;
+  border: 2px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.3rem;
+  text-align: center;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.fill-input:focus { outline: none; border-color: var(--blue); }
+.fill-input.correct { border-color: var(--mint); background: #E6F9EE; }
+.fill-input.wrong { border-color: var(--coral); background: #FFE8E8; }
+
+.fill-equation {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Speed Round */
+.speed-display {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.speed-timer {
+  font-family: 'Baloo 2', cursive;
+  font-size: 2.5rem;
+  color: var(--coral);
+}
+
+.speed-score {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.5rem;
+  color: var(--lilac);
+}
+
+.speed-problem {
+  font-family: 'Baloo 2', cursive;
+  font-size: 2rem;
+  text-align: center;
+  margin: 16px 0;
+}
+
+/* Completion */
+.completion {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.completion h2 { font-size: 2rem; color: var(--lilac); }
+.completion .big-emoji { font-size: 4rem; display: block; margin: 16px 0; }
+.completion p { font-size: 1.1rem; color: var(--text-light); }
+
+.hidden { display: none !important; }
+
+/* Times table grid */
+.times-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.times-cell {
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: #F8F6F2;
+  text-align: center;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.times-cell:hover { background: #E8F7FF; transform: scale(1.05); }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.5rem; }
+  .options-grid { grid-template-columns: 1fr; }
+  .score-bar { gap: 8px; }
+  .score-pill { padding: 4px 10px; font-size: 0.8rem; }
+  .tabs { padding: 12px 12px 0; }
+  .tab { padding: 8px 14px; font-size: 0.9rem; }
+  .section { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>✖️ Multiplication Quest</h1>
+  <p>Master your times tables like a math hero!</p>
+</div>
+
+<div class="score-bar">
+  <div class="score-pill"><span class="emoji">⭐</span> Stars: <span class="val" id="stars">0</span></div>
+  <div class="score-pill"><span class="emoji">🔥</span> Streak: <span class="val" id="streak">0</span></div>
+  <div class="score-pill"><span class="emoji">🏆</span> Level: <span class="val" id="level">1</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showSection('learn')">🎨 Learn</button>
+  <button class="tab" onclick="showSection('practice')">✏️ Practice</button>
+  <button class="tab" onclick="showSection('word')">📝 Word Problems</button>
+  <button class="tab" onclick="showSection('speed')">⚡ Speed Round</button>
+</div>
+
+<!-- LEARN SECTION -->
+<div class="section active" id="sec-learn">
+  <div class="card">
+    <h2>🎨 Array Visualizer</h2>
+    <p>Multiplication is just groups of things! Pick the number of rows and columns to see how arrays work.</p>
+    <div class="array-controls">
+      <label>Rows:</label>
+      <select id="arr-rows" onchange="updateArray()">
+        <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+      </select>
+      <label>× Columns:</label>
+      <select id="arr-cols" onchange="updateArray()">
+        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+      </select>
+    </div>
+    <div class="array-display" id="arr-display"></div>
+    <div class="array-equation" id="arr-equation"></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Times Table Chart</h2>
+    <p>Pick a number to see its times table!</p>
+    <div class="array-controls">
+      <label>Table for:</label>
+      <select id="table-num" onchange="showTimesTable()">
+        <option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+      </select>
+    </div>
+    <div class="times-table" id="times-table"></div>
+  </div>
+
+  <div class="card">
+    <h2>💡 Multiplication Tips</h2>
+    <h3>Tricks to remember:</h3>
+    <p>🔹 <strong>×2</strong> = just double the number!<br>
+    🔹 <strong>×5</strong> = always ends in 0 or 5<br>
+    🔹 <strong>×9</strong> = the digits always add up to 9! (9, 18, 27, 36...)<br>
+    🔹 <strong>×10</strong> = add a 0 to the end<br>
+    🔹 <strong>Order doesn't matter:</strong> 3 × 4 = 4 × 3</p>
+  </div>
+</div>
+
+<!-- PRACTICE SECTION -->
+<div class="section" id="sec-practice">
+  <div class="card">
+    <h2>✏️ Fill in the Answer</h2>
+    <p>Type the product for each multiplication fact!</p>
+    <div class="progress-track"><div class="progress-fill" id="practice-progress" style="width:0%"></div></div>
+    <div id="practice-area"></div>
+    <div class="feedback" id="practice-feedback"></div>
+    <div id="practice-completion" class="completion hidden">
+      <span class="big-emoji">🌟</span>
+      <h2>Great Practice!</h2>
+      <p id="practice-score-text"></p>
+      <button class="btn btn-primary" onclick="initPractice()" style="margin-top:16px">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORD PROBLEMS SECTION -->
+<div class="section" id="sec-word">
+  <div class="card">
+    <h2>📝 Word Problems</h2>
+    <p>Use multiplication to solve these real-world problems!</p>
+    <div class="progress-track"><div class="progress-fill" id="word-progress" style="width:0%"></div></div>
+    <div id="word-area"></div>
+    <div class="feedback" id="word-feedback"></div>
+    <div id="word-completion" class="completion hidden">
+      <span class="big-emoji">🎉</span>
+      <h2>Problem Solver!</h2>
+      <p id="word-score-text"></p>
+      <button class="btn btn-primary" onclick="initWord()" style="margin-top:16px">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPEED ROUND SECTION -->
+<div class="section" id="sec-speed">
+  <div class="card">
+    <h2>⚡ Speed Round</h2>
+    <p>Answer as many as you can in 60 seconds! Type your answer and press Enter.</p>
+    <div class="speed-display">
+      <div class="speed-timer" id="speed-timer">60</div>
+      <div class="speed-score">Score: <span id="speed-score">0</span></div>
+    </div>
+    <div id="speed-area">
+      <div style="text-align:center">
+        <button class="btn btn-primary" id="speed-start-btn" onclick="startSpeed()">🚀 Start!</button>
+      </div>
+    </div>
+    <div id="speed-game" class="hidden">
+      <div class="speed-problem" id="speed-problem"></div>
+      <div style="text-align:center">
+        <input type="number" class="fill-input" id="speed-input" onkeydown="if(event.key==='Enter')checkSpeed()" style="width:120px;font-size:1.5rem" autofocus>
+      </div>
+      <div class="feedback" id="speed-feedback"></div>
+    </div>
+    <div id="speed-completion" class="completion hidden">
+      <span class="big-emoji">⚡</span>
+      <h2>Speed Demon!</h2>
+      <p id="speed-score-text"></p>
+      <button class="btn btn-primary" onclick="initSpeed()" style="margin-top:16px">Race Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// State
+let stars = 0, streak = 0, level = 1;
+
+function addStars(n) {
+  stars += n;
+  document.getElementById('stars').textContent = stars;
+  if (stars >= level * 15) { level++; document.getElementById('level').textContent = level; }
+}
+function bumpStreak() { streak++; document.getElementById('streak').textContent = streak; }
+function resetStreak() { streak = 0; document.getElementById('streak').textContent = streak; }
+
+// Tabs
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  const tabNames = ['learn','practice','word','speed'];
+  document.querySelectorAll('.tab')[tabNames.indexOf(name)].classList.add('active');
+}
+
+// Array Visualizer
+function updateArray() {
+  const rows = +document.getElementById('arr-rows').value;
+  const cols = +document.getElementById('arr-cols').value;
+  const display = document.getElementById('arr-display');
+  display.style.gridTemplateColumns = `repeat(${cols}, 28px)`;
+  const colors = ['#4ECDC4','#3FC1F0','#A48BDB','#FF6B6B','#FFB07C','#FF6B9D','#2ECC71','#F7DC6F'];
+  let html = '';
+  for (let r = 0; r < rows; r++) {
+    const color = colors[r % colors.length];
+    for (let c = 0; c < cols; c++) {
+      html += `<div class="array-dot" style="background:${color};animation-delay:${(r*cols+c)*30}ms"></div>`;
+    }
+  }
+  display.innerHTML = html;
+  document.getElementById('arr-equation').textContent = `${rows} × ${cols} = ${rows * cols}`;
+}
+
+function showTimesTable() {
+  const n = +document.getElementById('table-num').value;
+  let html = '';
+  for (let i = 1; i <= 12; i++) {
+    html += `<div class="times-cell">${n} × ${i} = <strong>${n*i}</strong></div>`;
+  }
+  document.getElementById('times-table').innerHTML = html;
+}
+
+// Practice Section
+let practiceQs = [], practiceIdx = 0, practiceCorrect = 0;
+
+function makePracticeQuestions() {
+  const qs = [];
+  for (let i = 0; i < 8; i++) {
+    const a = Math.floor(Math.random() * 9) + 2;
+    const b = Math.floor(Math.random() * 9) + 2;
+    qs.push({ a, b, answer: a * b });
+  }
+  return qs;
+}
+
+function initPractice() {
+  practiceQs = makePracticeQuestions();
+  practiceIdx = 0; practiceCorrect = 0;
+  document.getElementById('practice-completion').classList.add('hidden');
+  document.getElementById('practice-feedback').className = 'feedback';
+  showPracticeQ();
+}
+
+function showPracticeQ() {
+  if (practiceIdx >= practiceQs.length) {
+    document.getElementById('practice-area').innerHTML = '';
+    document.getElementById('practice-completion').classList.remove('hidden');
+    document.getElementById('practice-score-text').textContent = `You got ${practiceCorrect} out of ${practiceQs.length} correct!`;
+    addStars(practiceCorrect);
+    return;
+  }
+  const q = practiceQs[practiceIdx];
+  const pct = (practiceIdx / practiceQs.length) * 100;
+  document.getElementById('practice-progress').style.width = pct + '%';
+  document.getElementById('practice-feedback').className = 'feedback';
+
+  document.getElementById('practice-area').innerHTML = `
+    <div class="quiz-question">Question ${practiceIdx + 1} of ${practiceQs.length}</div>
+    <div class="fill-equation">
+      ${q.a} × ${q.b} = <input type="number" class="fill-input" id="practice-input" autofocus>
+      <button class="btn btn-primary" onclick="checkPractice()">Check</button>
+    </div>
+  `;
+  setTimeout(() => { const el = document.getElementById('practice-input'); if(el) el.focus(); }, 100);
+  document.getElementById('practice-input').addEventListener('keydown', e => { if(e.key === 'Enter') checkPractice(); });
+}
+
+function checkPractice() {
+  const input = document.getElementById('practice-input');
+  const val = parseInt(input.value);
+  const q = practiceQs[practiceIdx];
+  const fb = document.getElementById('practice-feedback');
+
+  if (isNaN(val)) return;
+
+  if (val === q.answer) {
+    input.classList.add('correct');
+    fb.className = 'feedback correct show';
+    fb.textContent = '✅ Correct! ' + q.a + ' × ' + q.b + ' = ' + q.answer;
+    practiceCorrect++;
+    bumpStreak();
+  } else {
+    input.classList.add('wrong');
+    fb.className = 'feedback wrong show';
+    fb.textContent = '❌ Not quite! ' + q.a + ' × ' + q.b + ' = ' + q.answer;
+    resetStreak();
+  }
+  input.disabled = true;
+  practiceIdx++;
+  setTimeout(showPracticeQ, 1200);
+}
+
+// Word Problems
+const wordProblems = [
+  { text: "Emma has 4 bags of apples. Each bag has 6 apples. How many apples does she have in total?", answer: 24, hint: "4 bags × 6 apples each", options: [20, 24, 28, 10] },
+  { text: "There are 7 rows of desks in the classroom. Each row has 5 desks. How many desks are there?", answer: 35, hint: "7 rows × 5 desks per row", options: [30, 35, 40, 25] },
+  { text: "A spider has 8 legs. How many legs do 3 spiders have altogether?", answer: 24, hint: "3 spiders × 8 legs each", options: [16, 20, 24, 32] },
+  { text: "Mom bought 6 packs of juice boxes. Each pack has 8 juice boxes. How many juice boxes did she buy?", answer: 48, hint: "6 packs × 8 boxes each", options: [42, 48, 54, 36] },
+  { text: "There are 9 teams in the league. Each team has 5 players. How many players are there in all?", answer: 45, hint: "9 teams × 5 players each", options: [40, 45, 50, 35] },
+  { text: "A bookshelf has 3 shelves. Each shelf holds 9 books. How many books can it hold?", answer: 27, hint: "3 shelves × 9 books each", options: [21, 24, 27, 30] },
+  { text: "There are 10 cars in the parking lot. Each car has 4 wheels. How many wheels are there altogether?", answer: 40, hint: "10 cars × 4 wheels each", options: [30, 36, 40, 44] },
+];
+
+let wordQs = [], wordIdx = 0, wordCorrect = 0;
+
+function initWord() {
+  wordQs = [...wordProblems].sort(() => Math.random() - 0.5).slice(0, 5);
+  wordIdx = 0; wordCorrect = 0;
+  document.getElementById('word-completion').classList.add('hidden');
+  document.getElementById('word-feedback').className = 'feedback';
+  showWordQ();
+}
+
+function showWordQ() {
+  if (wordIdx >= wordQs.length) {
+    document.getElementById('word-area').innerHTML = '';
+    document.getElementById('word-completion').classList.remove('hidden');
+    document.getElementById('word-score-text').textContent = `You solved ${wordCorrect} out of ${wordQs.length} problems!`;
+    addStars(wordCorrect * 2);
+    return;
+  }
+  const q = wordQs[wordIdx];
+  const pct = (wordIdx / wordQs.length) * 100;
+  document.getElementById('word-progress').style.width = pct + '%';
+  document.getElementById('word-feedback').className = 'feedback';
+
+  let optionsHTML = '<div class="options-grid">';
+  const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+  shuffled.forEach(opt => {
+    optionsHTML += `<button class="option-btn" onclick="checkWord(this, ${opt}, ${q.answer})">${opt}</button>`;
+  });
+  optionsHTML += '</div>';
+
+  document.getElementById('word-area').innerHTML = `
+    <div class="quiz-question">Problem ${wordIdx + 1} of ${wordQs.length}</div>
+    <p style="font-size:1.1rem;margin-bottom:16px;line-height:1.7">${q.text}</p>
+    ${optionsHTML}
+  `;
+}
+
+function checkWord(btn, chosen, answer) {
+  const fb = document.getElementById('word-feedback');
+  document.querySelectorAll('#word-area .option-btn').forEach(b => b.disabled = true);
+
+  if (chosen === answer) {
+    btn.classList.add('correct');
+    fb.className = 'feedback correct show';
+    fb.textContent = '🎉 That\'s right! ' + wordQs[wordIdx].hint;
+    wordCorrect++;
+    bumpStreak();
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#word-area .option-btn').forEach(b => {
+      if (b.textContent == answer) b.classList.add('correct');
+    });
+    fb.className = 'feedback wrong show';
+    fb.textContent = '💡 The answer is ' + answer + '. ' + wordQs[wordIdx].hint;
+    resetStreak();
+  }
+  wordIdx++;
+  setTimeout(showWordQ, 1500);
+}
+
+// Speed Round
+let speedTimer, speedTimeLeft, speedCorrectCount, speedA, speedB;
+
+function initSpeed() {
+  speedTimeLeft = 60;
+  speedCorrectCount = 0;
+  document.getElementById('speed-timer').textContent = '60';
+  document.getElementById('speed-score').textContent = '0';
+  document.getElementById('speed-start-btn').classList.remove('hidden');
+  document.getElementById('speed-game').classList.add('hidden');
+  document.getElementById('speed-completion').classList.add('hidden');
+  document.getElementById('speed-area').classList.remove('hidden');
+  if (speedTimer) clearInterval(speedTimer);
+}
+
+function startSpeed() {
+  document.getElementById('speed-area').classList.add('hidden');
+  document.getElementById('speed-game').classList.remove('hidden');
+  speedCorrectCount = 0;
+  speedTimeLeft = 60;
+  nextSpeedQ();
+  speedTimer = setInterval(() => {
+    speedTimeLeft--;
+    document.getElementById('speed-timer').textContent = speedTimeLeft;
+    if (speedTimeLeft <= 0) {
+      clearInterval(speedTimer);
+      endSpeed();
+    }
+  }, 1000);
+}
+
+function nextSpeedQ() {
+  speedA = Math.floor(Math.random() * 9) + 2;
+  speedB = Math.floor(Math.random() * 9) + 2;
+  document.getElementById('speed-problem').textContent = `${speedA} × ${speedB} = ?`;
+  const input = document.getElementById('speed-input');
+  input.value = '';
+  input.classList.remove('correct','wrong');
+  input.disabled = false;
+  input.focus();
+  document.getElementById('speed-feedback').className = 'feedback';
+}
+
+function checkSpeed() {
+  const input = document.getElementById('speed-input');
+  const val = parseInt(input.value);
+  if (isNaN(val)) return;
+  const fb = document.getElementById('speed-feedback');
+  if (val === speedA * speedB) {
+    speedCorrectCount++;
+    document.getElementById('speed-score').textContent = speedCorrectCount;
+    input.classList.add('correct');
+    fb.className = 'feedback correct show';
+    fb.textContent = '✅ Yes!';
+    bumpStreak();
+  } else {
+    input.classList.add('wrong');
+    fb.className = 'feedback wrong show';
+    fb.textContent = `❌ ${speedA} × ${speedB} = ${speedA * speedB}`;
+    resetStreak();
+  }
+  input.disabled = true;
+  setTimeout(nextSpeedQ, 600);
+}
+
+function endSpeed() {
+  document.getElementById('speed-game').classList.add('hidden');
+  document.getElementById('speed-completion').classList.remove('hidden');
+  const msg = speedCorrectCount >= 15 ? "Lightning fast! Amazing!" : speedCorrectCount >= 10 ? "Super speedy! Great job!" : speedCorrectCount >= 5 ? "Good work! Keep practicing!" : "Nice try! You'll get faster!";
+  document.getElementById('speed-score-text').textContent = `You answered ${speedCorrectCount} correctly in 60 seconds! ${msg}`;
+  addStars(speedCorrectCount);
+}
+
+// Init
+updateArray();
+showTimesTable();
+initPractice();
+initWord();
+initSpeed();
+</script>
+</body>
+</html>

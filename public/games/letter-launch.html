@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Letter Launch 🚀</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0a0a2a;
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(164, 139, 219, 0.2);
+  border-bottom: 2px solid rgba(164, 139, 219, 0.3);
+  z-index: 10;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+}
+
+.stat-icon { font-size: 1.2rem; }
+.stat-value { color: #c4b3ec; }
+
+.level-badge {
+  background: linear-gradient(135deg, #a48bdb, #7c5fbf);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.prompt-bar {
+  background: rgba(0,0,0,0.85);
+  border-top: 2px solid rgba(164, 139, 219, 0.5);
+  padding: 16px 20px;
+  text-align: center;
+  z-index: 10;
+}
+
+.prompt-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.prompt-text .target {
+  color: #f0c040;
+  font-size: 2rem;
+}
+
+/* Overlays */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 30, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  gap: 20px;
+  padding: 30px;
+  text-align: center;
+}
+
+.overlay.hidden { display: none; }
+
+.overlay h1 {
+  font-size: 2.5rem;
+  color: #f0c040;
+  text-shadow: 0 0 20px rgba(240, 192, 64, 0.5);
+}
+
+.overlay h2 {
+  font-size: 1.8rem;
+  color: white;
+}
+
+.overlay p {
+  font-size: 1.1rem;
+  color: #c4b3ec;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+.overlay .emoji-big {
+  font-size: 5rem;
+}
+
+.btn {
+  background: linear-gradient(135deg, #a48bdb, #7c5fbf);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 30px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 20px rgba(164, 139, 219, 0.4);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #4a4a6a, #3a3a5a);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  font-size: 1.1rem;
+  padding: 12px 36px;
+}
+
+.level-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  max-width: 360px;
+}
+
+.level-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  border: 3px solid rgba(164, 139, 219, 0.5);
+  background: rgba(164, 139, 219, 0.15);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.level-btn:active { transform: scale(0.93); }
+.level-btn .lvl-num { font-size: 1.4rem; color: #f0c040; }
+.level-btn .lvl-label { font-size: 0.55rem; color: #aaa; text-transform: uppercase; }
+.level-btn.locked { opacity: 0.35; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- Start screen -->
+<div class="overlay" id="startScreen">
+  <div class="emoji-big">🚀</div>
+  <h1>Letter Launch</h1>
+  <p>Tap the rocket with the right letter to blast off into space!</p>
+  <h2>Pick a Level</h2>
+  <div class="level-select" id="levelSelect"></div>
+</div>
+
+<!-- Level complete screen -->
+<div class="overlay hidden" id="completeScreen">
+  <div class="emoji-big">🎉</div>
+  <h1 id="completeTitle">Level Complete!</h1>
+  <p id="completeMsg"></p>
+  <button class="btn" id="nextLevelBtn">Next Level</button>
+  <button class="btn btn-secondary" id="backToMenuBtn">Menu</button>
+</div>
+
+<!-- Game over screen -->
+<div class="overlay hidden" id="gameOverScreen">
+  <div class="emoji-big">💫</div>
+  <h1>Good Try!</h1>
+  <p id="gameOverMsg">You got far! Let's try again!</p>
+  <button class="btn" id="retryBtn">Try Again</button>
+  <button class="btn btn-secondary" id="gameOverMenuBtn">Menu</button>
+</div>
+
+<!-- Game UI -->
+<div class="game-container" id="gameUI" style="display:none;">
+  <div class="hud">
+    <div class="stat"><span class="stat-icon">⭐</span> <span class="stat-value" id="scoreVal">0</span></div>
+    <div class="level-badge" id="levelBadge">Level 1</div>
+    <div class="stat"><span class="stat-icon">❤️</span> <span class="stat-value" id="livesVal">♥♥♥</span></div>
+  </div>
+  <div class="canvas-wrapper">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+  <div class="prompt-bar">
+    <div class="prompt-text" id="promptText">Find the letter <span class="target">A</span>!</div>
+  </div>
+</div>
+
+<script>
+const LEVELS = [
+  { name: 'A-G', letters: 'ABCDEFG'.split(''), mode: 'find-upper' },
+  { name: 'H-N', letters: 'HIJKLMN'.split(''), mode: 'find-upper' },
+  { name: 'O-Z', letters: 'OPQRSTUVWXYZ'.split(''), mode: 'find-upper' },
+  { name: 'a-z', letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), mode: 'match-lower' },
+  { name: 'Phonics', letters: null, mode: 'phonics' },
+];
+
+const PHONICS_WORDS = [
+  { emoji: '🐱', word: 'Cat', letter: 'C' },
+  { emoji: '🌟', word: 'Star', letter: 'S' },
+  { emoji: '🐶', word: 'Dog', letter: 'D' },
+  { emoji: '🐟', word: 'Fish', letter: 'F' },
+  { emoji: '🌈', word: 'Rainbow', letter: 'R' },
+  { emoji: '🌙', word: 'Moon', letter: 'M' },
+  { emoji: '🐝', word: 'Bee', letter: 'B' },
+  { emoji: '🏠', word: 'House', letter: 'H' },
+  { emoji: '🌲', word: 'Tree', letter: 'T' },
+  { emoji: '👑', word: 'King', letter: 'K' },
+  { emoji: '🦁', word: 'Lion', letter: 'L' },
+  { emoji: '🐍', word: 'Snake', letter: 'S' },
+  { emoji: '🍎', word: 'Apple', letter: 'A' },
+  { emoji: '🐘', word: 'Elephant', letter: 'E' },
+  { emoji: '🦉', word: 'Owl', letter: 'O' },
+  { emoji: '🐧', word: 'Penguin', letter: 'P' },
+  { emoji: '🌻', word: 'Worm', letter: 'W' },
+  { emoji: '🦒', word: 'Giraffe', letter: 'G' },
+  { emoji: '🎺', word: 'Trumpet', letter: 'T' },
+  { emoji: '🧊', word: 'Ice', letter: 'I' },
+];
+
+const ROCKET_COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#e64980','#20c997','#a48bdb','#f783ac','#74c0fc'];
+
+// Game state
+let canvas, ctx, W, H;
+let currentLevel = 0;
+let score = 0;
+let lives = 3;
+let questionIndex = 0;
+let wrongCount = 0;
+let targetLetter = '';
+let promptStr = '';
+let rockets = [];
+let stars = [];
+let particles = [];
+let shakeTimer = 0;
+let shakeIntensity = 0;
+let animFrame = 0;
+let gameActive = false;
+let transitionTimer = 0;
+let maxLevelUnlocked = 0;
+
+// Load progress
+try {
+  const saved = localStorage.getItem('letter-launch-progress');
+  if (saved) maxLevelUnlocked = parseInt(saved) || 0;
+} catch(e) {}
+
+function saveProgress() {
+  try { localStorage.setItem('letter-launch-progress', maxLevelUnlocked.toString()); } catch(e) {}
+}
+
+// Stars background
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 80; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2 + 0.5,
+      twinkle: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.02 + 0.01,
+    });
+  }
+}
+
+function drawStars() {
+  for (const s of stars) {
+    s.twinkle += s.speed;
+    const alpha = 0.4 + 0.6 * Math.abs(Math.sin(s.twinkle));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+  }
+}
+
+// Particles
+function spawnParticles(x, y, color, count, speed) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const spd = Math.random() * speed + speed * 0.3;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd,
+      life: 1,
+      decay: Math.random() * 0.025 + 0.015,
+      r: Math.random() * 4 + 2,
+      color,
+    });
+  }
+}
+
+function spawnFireTrail(x, y) {
+  for (let i = 0; i < 3; i++) {
+    particles.push({
+      x: x + (Math.random() - 0.5) * 16,
+      y: y,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: Math.random() * 2 + 1,
+      life: 1,
+      decay: 0.04 + Math.random() * 0.03,
+      r: Math.random() * 5 + 3,
+      color: Math.random() > 0.5 ? '#ff6b35' : '#ffd93d',
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// Rocket class
+class Rocket {
+  constructor(letter, x, targetY, color) {
+    this.letter = letter;
+    this.x = x;
+    this.y = -80;
+    this.targetY = targetY;
+    this.color = color;
+    this.w = 74;
+    this.h = 90;
+    this.arrived = false;
+    this.launching = false;
+    this.launchVy = 0;
+    this.fizzle = false;
+    this.fizzleTimer = 0;
+    this.wobble = 0;
+    this.wobbleSpeed = Math.random() * 0.03 + 0.01;
+    this.hoverOffset = Math.random() * Math.PI * 2;
+    this.dead = false;
+    this.fallSpeed = Math.random() * 0.8 + 1.2;
+  }
+
+  update() {
+    if (this.dead) return;
+
+    if (this.launching) {
+      this.launchVy -= 0.6;
+      this.y += this.launchVy;
+      spawnFireTrail(this.x, this.y + this.h / 2);
+      if (this.y < -120) this.dead = true;
+      return;
+    }
+
+    if (this.fizzle) {
+      this.fizzleTimer++;
+      this.wobble = Math.sin(this.fizzleTimer * 0.5) * 8;
+      if (this.fizzleTimer > 40) {
+        this.fizzle = false;
+        this.fizzleTimer = 0;
+        this.wobble = 0;
+      }
+      return;
+    }
+
+    if (!this.arrived) {
+      this.y += this.fallSpeed;
+      if (this.y >= this.targetY) {
+        this.y = this.targetY;
+        this.arrived = true;
+      }
+    } else {
+      this.hoverOffset += 0.02;
+      this.y = this.targetY + Math.sin(this.hoverOffset) * 4;
+    }
+  }
+
+  draw() {
+    if (this.dead) return;
+    const x = this.x + this.wobble;
+    const y = this.y;
+    const w = this.w;
+    const h = this.h;
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Rocket body
+    ctx.beginPath();
+    ctx.moveTo(0, -h/2 + 5);
+    // Nose cone
+    ctx.quadraticCurveTo(-w * 0.05, -h/2 - 10, 0, -h/2 - 18);
+    ctx.quadraticCurveTo(w * 0.05, -h/2 - 10, 0, -h/2 + 5);
+    ctx.closePath();
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fill();
+
+    // Main body
+    ctx.beginPath();
+    ctx.roundRect(-w/2 + 8, -h/2 + 5, w - 16, h - 25, 6);
+    ctx.fillStyle = this.fizzle ? '#888' : this.color;
+    ctx.fill();
+
+    // Window / letter circle
+    ctx.beginPath();
+    ctx.arc(0, -5, 22, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Letter
+    ctx.fillStyle = '#222';
+    ctx.font = 'bold 28px "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.letter, 0, -4);
+
+    // Fins
+    ctx.fillStyle = this.fizzle ? '#666' : shadeColor(this.color, -30);
+    // Left fin
+    ctx.beginPath();
+    ctx.moveTo(-w/2 + 8, h/2 - 20);
+    ctx.lineTo(-w/2 - 4, h/2 - 8);
+    ctx.lineTo(-w/2 + 8, h/2 - 30);
+    ctx.closePath();
+    ctx.fill();
+    // Right fin
+    ctx.beginPath();
+    ctx.moveTo(w/2 - 8, h/2 - 20);
+    ctx.lineTo(w/2 + 4, h/2 - 8);
+    ctx.lineTo(w/2 - 8, h/2 - 30);
+    ctx.closePath();
+    ctx.fill();
+
+    // Engine nozzle
+    ctx.fillStyle = '#555';
+    ctx.beginPath();
+    ctx.roundRect(-10, h/2 - 20, 20, 10, [0, 0, 4, 4]);
+    ctx.fill();
+
+    // Idle flame when arrived and not fizzling
+    if (this.arrived && !this.fizzle && !this.launching) {
+      const flicker = Math.sin(Date.now() * 0.015) * 3;
+      ctx.fillStyle = 'rgba(255, 160, 50, 0.6)';
+      ctx.beginPath();
+      ctx.moveTo(-6, h/2 - 10);
+      ctx.quadraticCurveTo(0, h/2 + 5 + flicker, 6, h/2 - 10);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  containsPoint(px, py) {
+    if (this.dead || this.launching) return false;
+    const x = this.x + this.wobble;
+    return px >= x - this.w/2 - 8 && px <= x + this.w/2 + 8 &&
+           py >= this.y - this.h/2 - 18 && py <= this.y + this.h/2 + 8;
+  }
+
+  launch() {
+    this.launching = true;
+    this.launchVy = -3;
+    spawnParticles(this.x, this.y + this.h/2, '#ffd93d', 20, 4);
+    spawnParticles(this.x, this.y + this.h/2, '#ff6b35', 15, 3);
+  }
+
+  doFizzle() {
+    this.fizzle = true;
+    this.fizzleTimer = 0;
+    spawnParticles(this.x, this.y, '#888', 8, 2);
+  }
+}
+
+function shadeColor(color, amount) {
+  let r = parseInt(color.slice(1,3), 16) + amount;
+  let g = parseInt(color.slice(3,5), 16) + amount;
+  let b = parseInt(color.slice(5,7), 16) + amount;
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return `rgb(${r},${g},${b})`;
+}
+
+// Shuffle helper
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickDistractors(correct, pool, count) {
+  const options = pool.filter(l => l !== correct);
+  const picked = shuffle(options).slice(0, count);
+  picked.push(correct);
+  return shuffle(picked);
+}
+
+function generateQuestion() {
+  const level = LEVELS[currentLevel];
+  let target, displayLetters, prompt;
+
+  if (level.mode === 'find-upper') {
+    target = level.letters[Math.floor(Math.random() * level.letters.length)];
+    displayLetters = pickDistractors(target, level.letters, Math.min(3, level.letters.length - 1));
+    prompt = `Find the letter <span class="target">${target}</span>!`;
+  } else if (level.mode === 'match-lower') {
+    const upper = level.letters[Math.floor(Math.random() * level.letters.length)];
+    target = upper.toLowerCase();
+    // Show lowercase letters, ask to find the lowercase match of the shown uppercase
+    const lowerPool = level.letters.map(l => l.toLowerCase());
+    displayLetters = pickDistractors(target, lowerPool, 3);
+    prompt = `Find lowercase <span class="target">${upper}</span>!`;
+  } else if (level.mode === 'phonics') {
+    const word = PHONICS_WORDS[Math.floor(Math.random() * PHONICS_WORDS.length)];
+    target = word.letter;
+    const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    displayLetters = pickDistractors(target, allLetters, 3);
+    prompt = `${word.emoji} What letter does <span class="target">${word.word}</span> start with?`;
+  }
+
+  targetLetter = target;
+  promptStr = prompt;
+  wrongCount = 0;
+  spawnRockets(displayLetters);
+  document.getElementById('promptText').innerHTML = prompt;
+}
+
+function spawnRockets(letters) {
+  rockets = [];
+  const count = letters.length;
+  const margin = 55;
+  const usableW = W - margin * 2;
+  const spacing = usableW / (count + 1);
+  const baseY = H * 0.35;
+  const colors = shuffle(ROCKET_COLORS);
+
+  for (let i = 0; i < count; i++) {
+    const x = margin + spacing * (i + 1);
+    const yOff = (Math.random() - 0.5) * 60;
+    rockets.push(new Rocket(letters[i], x, baseY + yOff, colors[i % colors.length]));
+  }
+}
+
+function handleTap(px, py) {
+  if (!gameActive || transitionTimer > 0) return;
+
+  for (const r of rockets) {
+    if (r.containsPoint(px, py)) {
+      if (r.letter === targetLetter) {
+        // Correct!
+        r.launch();
+        score += 10;
+        document.getElementById('scoreVal').textContent = score;
+        shakeTimer = 8;
+        shakeIntensity = 3;
+        spawnParticles(r.x, r.y - 30, '#ffd93d', 25, 5);
+        spawnParticles(r.x, r.y - 30, '#a48bdb', 15, 4);
+        transitionTimer = 60;
+        setTimeout(nextQuestion, 1000);
+      } else {
+        // Wrong
+        r.doFizzle();
+        wrongCount++;
+        shakeTimer = 6;
+        shakeIntensity = 4;
+        if (wrongCount >= 3) {
+          lives--;
+          updateLivesDisplay();
+          if (lives <= 0) {
+            gameActive = false;
+            setTimeout(showGameOver, 800);
+            return;
+          }
+          // Move to next question after losing a life
+          transitionTimer = 40;
+          setTimeout(nextQuestion, 700);
+        }
+      }
+      return;
+    }
+  }
+}
+
+function nextQuestion() {
+  questionIndex++;
+  if (questionIndex >= 10) {
+    gameActive = false;
+    showLevelComplete();
+    return;
+  }
+  generateQuestion();
+  transitionTimer = 0;
+}
+
+function updateLivesDisplay() {
+  const hearts = '♥'.repeat(lives) + '♡'.repeat(Math.max(0, 3 - lives));
+  document.getElementById('livesVal').textContent = hearts;
+}
+
+// Screens
+function buildLevelSelect() {
+  const container = document.getElementById('levelSelect');
+  container.innerHTML = '';
+  for (let i = 0; i < LEVELS.length; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (i > maxLevelUnlocked ? ' locked' : '');
+    btn.innerHTML = `<span class="lvl-num">${i + 1}</span><span class="lvl-label">${LEVELS[i].name}</span>`;
+    if (i <= maxLevelUnlocked) {
+      btn.addEventListener('click', () => startLevel(i));
+    }
+    container.appendChild(btn);
+  }
+}
+
+function startLevel(levelIdx) {
+  currentLevel = levelIdx;
+  score = 0;
+  lives = 3;
+  questionIndex = 0;
+  particles = [];
+  rockets = [];
+
+  document.getElementById('scoreVal').textContent = '0';
+  updateLivesDisplay();
+  document.getElementById('levelBadge').textContent = `Level ${levelIdx + 1}`;
+
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('completeScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('gameUI').style.display = 'flex';
+
+  resizeCanvas();
+  initStars();
+  generateQuestion();
+  gameActive = true;
+
+  if (!animFrame) gameLoop();
+}
+
+function showLevelComplete() {
+  if (currentLevel + 1 > maxLevelUnlocked) {
+    maxLevelUnlocked = currentLevel + 1;
+    saveProgress();
+  }
+  const screen = document.getElementById('completeScreen');
+  document.getElementById('completeTitle').textContent =
+    currentLevel === LEVELS.length - 1 ? 'You Won!' : 'Level Complete!';
+  document.getElementById('completeMsg').textContent =
+    `Score: ${score} | You matched all 10 letters!`;
+  document.getElementById('nextLevelBtn').style.display =
+    currentLevel < LEVELS.length - 1 ? '' : 'none';
+  screen.classList.remove('hidden');
+}
+
+function showGameOver() {
+  document.getElementById('gameOverMsg').textContent =
+    `You scored ${score} points! Keep practicing!`;
+  document.getElementById('gameOverScreen').classList.remove('hidden');
+}
+
+function showMenu() {
+  document.getElementById('gameUI').style.display = 'none';
+  document.getElementById('completeScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('startScreen').classList.remove('hidden');
+  gameActive = false;
+  buildLevelSelect();
+}
+
+// Canvas
+function resizeCanvas() {
+  canvas = document.getElementById('gameCanvas');
+  const wrapper = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  W = wrapper.clientWidth;
+  H = wrapper.clientHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+}
+
+function drawBackground() {
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0a0a2a');
+  grad.addColorStop(0.5, '#1a1040');
+  grad.addColorStop(1, '#0d0d30');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function gameLoop() {
+  animFrame = requestAnimationFrame(gameLoop);
+
+  if (transitionTimer > 0) transitionTimer--;
+  if (shakeTimer > 0) shakeTimer--;
+
+  ctx.save();
+  if (shakeTimer > 0) {
+    const sx = (Math.random() - 0.5) * shakeIntensity;
+    const sy = (Math.random() - 0.5) * shakeIntensity;
+    ctx.translate(sx, sy);
+  }
+
+  drawBackground();
+  drawStars();
+
+  // Draw launch pad
+  const padY = H * 0.85;
+  ctx.fillStyle = '#333';
+  ctx.beginPath();
+  ctx.roundRect(W/2 - 40, padY, 80, 12, 4);
+  ctx.fill();
+  ctx.fillStyle = '#a48bdb';
+  ctx.beginPath();
+  ctx.roundRect(W/2 - 30, padY + 12, 60, 6, [0, 0, 3, 3]);
+  ctx.fill();
+
+  for (const r of rockets) {
+    r.update();
+    r.draw();
+  }
+
+  updateParticles();
+  drawParticles();
+
+  ctx.restore();
+}
+
+// Input
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches ? e.touches[0] : e;
+  return {
+    x: touch.clientX - rect.left,
+    y: touch.clientY - rect.top,
+  };
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', () => {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const pos = getCanvasPos(e);
+    handleTap(pos.x, pos.y);
+  });
+
+  document.getElementById('nextLevelBtn').addEventListener('click', () => {
+    startLevel(currentLevel + 1);
+  });
+  document.getElementById('backToMenuBtn').addEventListener('click', showMenu);
+  document.getElementById('retryBtn').addEventListener('click', () => startLevel(currentLevel));
+  document.getElementById('gameOverMenuBtn').addEventListener('click', showMenu);
+
+  window.addEventListener('resize', () => {
+    if (document.getElementById('gameUI').style.display !== 'none') {
+      resizeCanvas();
+      initStars();
+    }
+  });
+
+  buildLevelSelect();
+});
+</script>
+</body>
+</html>

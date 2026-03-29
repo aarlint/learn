@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Maze Runner</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.game-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.stat-value { color: #2563eb; }
+
+.level-badge {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+.maze-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 8px;
+}
+
+canvas {
+  display: block;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px 16px;
+  gap: 0;
+}
+
+.d-pad {
+  display: grid;
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  gap: 6px;
+}
+
+.d-btn {
+  width: 62px;
+  height: 62px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(6px);
+  font-size: 1.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: transform 0.08s, background 0.08s;
+  color: #1d4ed8;
+}
+
+.d-btn:active {
+  transform: scale(0.9);
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.d-btn.up    { grid-area: up; }
+.d-btn.left  { grid-area: left; }
+.d-btn.right { grid-area: right; }
+.d-btn.down  { grid-area: down; }
+
+/* Feedback */
+.feedback {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  font-weight: 800;
+  z-index: 20;
+  animation: popIn 0.7s ease-out forwards;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+
+.feedback.correct { color: #22c55e; }
+
+@keyframes popIn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  50% { transform: translate(-50%, -50%) scale(1.3); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-40px); }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  border-radius: 24px;
+  padding: 28px 36px;
+  text-align: center;
+  max-width: 90%;
+  width: 340px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal h2 {
+  font-size: 1.7rem;
+  color: #1d4ed8;
+  margin-bottom: 6px;
+}
+
+.modal .stars {
+  font-size: 2.5rem;
+  margin: 10px 0;
+}
+
+.modal p {
+  color: #666;
+  margin-bottom: 18px;
+  font-size: 1rem;
+}
+
+.modal button {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.modal button:active { transform: scale(0.95); }
+
+.hidden { display: none !important; }
+
+/* Countdown overlay */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.countdown-text {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #1d4ed8;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  animation: countPulse 0.6s ease-out;
+}
+
+@keyframes countPulse {
+  0% { transform: scale(2); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="hud">
+    <div class="stat">
+      <span>&#11088;</span>
+      <span class="stat-value" id="score">0</span>
+    </div>
+    <div class="level-badge">Level <span id="levelNum">1</span></div>
+    <div class="stat">
+      <span>&#9201;</span>
+      <span class="stat-value" id="moves">0</span>
+      <span style="font-weight:500; font-size:0.85rem"> moves</span>
+    </div>
+  </div>
+
+  <div class="maze-area">
+    <canvas id="maze"></canvas>
+    <div id="feedback" class="feedback hidden"></div>
+    <div id="countdown" class="countdown-overlay hidden">
+      <div class="countdown-text" id="countdownText"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="d-pad">
+      <button class="d-btn up" id="btnUp">&#9650;</button>
+      <button class="d-btn left" id="btnLeft">&#9664;</button>
+      <button class="d-btn right" id="btnRight">&#9654;</button>
+      <button class="d-btn down" id="btnDown">&#9660;</button>
+    </div>
+  </div>
+</div>
+
+<div id="levelModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="modalTitle">You Did It!</h2>
+    <div class="stars" id="modalStars">&#11088;&#11088;&#11088;</div>
+    <p id="modalText">You escaped the maze!</p>
+    <button id="nextBtn">Next Maze!</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('maze');
+const ctx = canvas.getContext('2d');
+
+// ── Level configs ──────────────────────────────
+// Each level defines maze grid size (cols x rows)
+const levels = [
+  { cols: 4, rows: 4,  label: '1' },
+  { cols: 5, rows: 5,  label: '2' },
+  { cols: 6, rows: 5,  label: '3' },
+  { cols: 6, rows: 6,  label: '4' },
+  { cols: 7, rows: 6,  label: '5' },
+  { cols: 7, rows: 7,  label: '6' },
+  { cols: 8, rows: 7,  label: '7' },
+  { cols: 8, rows: 8,  label: '8' },
+  { cols: 9, rows: 8,  label: '9' },
+  { cols: 10, rows: 9, label: '10' },
+];
+
+// ── State ──────────────────────────────────────
+let level = 0;
+let score = 0;
+let moves = 0;
+let grid = [];       // 2D array of cells
+let cols, rows;
+let cellSize;
+let playerCol = 0, playerRow = 0;
+let exitCol, exitRow;
+let gameRunning = false;
+let animating = false;
+let playerX, playerY;  // pixel positions for smooth movement
+let targetX, targetY;
+let collectibles = [];
+let collected = 0;
+
+// ── Maze generation (recursive backtracker) ────
+function initGrid(c, r) {
+  cols = c;
+  rows = r;
+  grid = [];
+  for (let row = 0; row < rows; row++) {
+    grid[row] = [];
+    for (let col = 0; col < cols; col++) {
+      grid[row][col] = { top: true, right: true, bottom: true, left: true, visited: false };
+    }
+  }
+}
+
+function generateMaze() {
+  const stack = [];
+  let current = { col: 0, row: 0 };
+  grid[0][0].visited = true;
+  stack.push(current);
+
+  while (stack.length > 0) {
+    const neighbors = [];
+    const { col, row } = current;
+
+    if (row > 0 && !grid[row - 1][col].visited) neighbors.push({ col, row: row - 1, dir: 'top' });
+    if (col < cols - 1 && !grid[row][col + 1].visited) neighbors.push({ col: col + 1, row, dir: 'right' });
+    if (row < rows - 1 && !grid[row + 1][col].visited) neighbors.push({ col, row: row + 1, dir: 'bottom' });
+    if (col > 0 && !grid[row][col - 1].visited) neighbors.push({ col: col - 1, row, dir: 'left' });
+
+    if (neighbors.length > 0) {
+      const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+      // Remove walls between current and next
+      if (next.dir === 'top')    { grid[row][col].top = false; grid[next.row][next.col].bottom = false; }
+      if (next.dir === 'right')  { grid[row][col].right = false; grid[next.row][next.col].left = false; }
+      if (next.dir === 'bottom') { grid[row][col].bottom = false; grid[next.row][next.col].top = false; }
+      if (next.dir === 'left')   { grid[row][col].left = false; grid[next.row][next.col].right = false; }
+
+      grid[next.row][next.col].visited = true;
+      stack.push(current);
+      current = next;
+    } else {
+      current = stack.pop();
+    }
+  }
+}
+
+// ── Place collectible gems ─────────────────────
+function placeCollectibles() {
+  collectibles = [];
+  collected = 0;
+  // Place 2-4 gems depending on level
+  const count = Math.min(2 + Math.floor(level / 3), 4);
+  const used = new Set();
+  used.add('0,0');
+  used.add(`${exitCol},${exitRow}`);
+
+  for (let i = 0; i < count; i++) {
+    let attempts = 0;
+    while (attempts < 50) {
+      const c = Math.floor(Math.random() * cols);
+      const r = Math.floor(Math.random() * rows);
+      const key = `${c},${r}`;
+      if (!used.has(key)) {
+        used.add(key);
+        collectibles.push({ col: c, row: r, collected: false });
+        break;
+      }
+      attempts++;
+    }
+  }
+}
+
+// ── Canvas sizing ──────────────────────────────
+function sizeCanvas() {
+  const area = canvas.parentElement;
+  const maxW = area.clientWidth - 16;
+  const maxH = area.clientHeight - 16;
+  const dpr = window.devicePixelRatio || 1;
+
+  // Calculate cell size to fit the maze in available space
+  const cs = Math.floor(Math.min(maxW / cols, maxH / rows));
+  cellSize = cs;
+
+  const w = cols * cs;
+  const h = rows * cs;
+
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+// ── Drawing ────────────────────────────────────
+const wallColor = '#1e3a5f';
+const pathColor = '#e0f2fe';
+const playerColor = '#3b82f6';
+const exitColor = '#22c55e';
+const gemColor = '#f59e0b';
+
+function draw() {
+  const w = cols * cellSize;
+  const h = rows * cellSize;
+
+  // Background
+  ctx.fillStyle = pathColor;
+  ctx.fillRect(0, 0, w, h);
+
+  // Draw cells
+  ctx.strokeStyle = wallColor;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(3, cellSize * 0.08);
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = col * cellSize;
+      const y = row * cellSize;
+      const cell = grid[row][col];
+
+      if (cell.top)    { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y); ctx.stroke(); }
+      if (cell.right)  { ctx.beginPath(); ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke(); }
+      if (cell.bottom) { ctx.beginPath(); ctx.moveTo(x, y + cellSize); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke(); }
+      if (cell.left)   { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + cellSize); ctx.stroke(); }
+    }
+  }
+
+  // Draw exit (green flag area)
+  const ex = exitCol * cellSize;
+  const ey = exitRow * cellSize;
+  const pad = cellSize * 0.15;
+  ctx.fillStyle = 'rgba(34, 197, 94, 0.25)';
+  ctx.fillRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
+  // Flag emoji via text
+  ctx.font = `${cellSize * 0.55}px system-ui`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('\u{1F3C1}', ex + cellSize / 2, ey + cellSize / 2);
+
+  // Draw collectible gems
+  collectibles.forEach(g => {
+    if (g.collected) return;
+    const gx = g.col * cellSize + cellSize / 2;
+    const gy = g.row * cellSize + cellSize / 2;
+    const pulse = 1 + Math.sin(Date.now() * 0.004) * 0.1;
+    ctx.font = `${cellSize * 0.4 * pulse}px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('\u{2B50}', gx, gy);
+  });
+
+  // Draw player
+  const pr = cellSize * 0.32;
+  ctx.fillStyle = playerColor;
+  ctx.shadowColor = 'rgba(59,130,246,0.4)';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.arc(playerX + cellSize / 2, playerY + cellSize / 2, pr, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Face on player
+  const faceX = playerX + cellSize / 2;
+  const faceY = playerY + cellSize / 2;
+  // Eyes
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(faceX - pr * 0.3, faceY - pr * 0.15, pr * 0.18, 0, Math.PI * 2);
+  ctx.arc(faceX + pr * 0.3, faceY - pr * 0.15, pr * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1e3a5f';
+  ctx.beginPath();
+  ctx.arc(faceX - pr * 0.3, faceY - pr * 0.15, pr * 0.09, 0, Math.PI * 2);
+  ctx.arc(faceX + pr * 0.3, faceY - pr * 0.15, pr * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+  // Smile
+  ctx.strokeStyle = '#1e3a5f';
+  ctx.lineWidth = Math.max(1.5, pr * 0.1);
+  ctx.beginPath();
+  ctx.arc(faceX, faceY + pr * 0.05, pr * 0.25, 0.1 * Math.PI, 0.9 * Math.PI);
+  ctx.stroke();
+
+  // Outer border
+  ctx.strokeStyle = wallColor;
+  ctx.lineWidth = Math.max(4, cellSize * 0.1);
+  ctx.strokeRect(0, 0, w, h);
+}
+
+// ── Movement ───────────────────────────────────
+function canMove(dir) {
+  const cell = grid[playerRow][playerCol];
+  if (dir === 'up' && !cell.top) return true;
+  if (dir === 'down' && !cell.bottom) return true;
+  if (dir === 'left' && !cell.left) return true;
+  if (dir === 'right' && !cell.right) return true;
+  return false;
+}
+
+function movePlayer(dir) {
+  if (!gameRunning || animating) return;
+  if (!canMove(dir)) return;
+
+  let newCol = playerCol;
+  let newRow = playerRow;
+
+  if (dir === 'up') newRow--;
+  if (dir === 'down') newRow++;
+  if (dir === 'left') newCol--;
+  if (dir === 'right') newCol++;
+
+  moves++;
+  document.getElementById('moves').textContent = moves;
+
+  playerCol = newCol;
+  playerRow = newRow;
+
+  // Animate
+  targetX = newCol * cellSize;
+  targetY = newRow * cellSize;
+  animating = true;
+
+  animateMove();
+}
+
+function animateMove() {
+  const dx = targetX - playerX;
+  const dy = targetY - playerY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist < 2) {
+    playerX = targetX;
+    playerY = targetY;
+    animating = false;
+    checkCell();
+    return;
+  }
+
+  const speed = Math.max(dist * 0.3, 2);
+  playerX += (dx / dist) * speed;
+  playerY += (dy / dist) * speed;
+
+  draw();
+  requestAnimationFrame(animateMove);
+}
+
+function checkCell() {
+  // Check gems
+  collectibles.forEach(g => {
+    if (!g.collected && g.col === playerCol && g.row === playerRow) {
+      g.collected = true;
+      collected++;
+      score += 25;
+      document.getElementById('score').textContent = score;
+      showFeedback('+25');
+    }
+  });
+
+  // Check exit
+  if (playerCol === exitCol && playerRow === exitRow) {
+    gameRunning = false;
+    score += 50;  // completion bonus
+    // Bonus for uncollected gems = 0; bonus for collecting all
+    if (collected === collectibles.length && collectibles.length > 0) {
+      score += 50;
+    }
+    document.getElementById('score').textContent = score;
+    setTimeout(showLevelComplete, 300);
+  }
+
+  draw();
+}
+
+function showFeedback(text) {
+  const el = document.getElementById('feedback');
+  el.textContent = text;
+  el.className = 'feedback correct';
+  setTimeout(() => el.classList.add('hidden'), 700);
+}
+
+// ── Level complete ─────────────────────────────
+function showLevelComplete() {
+  const cfg = levels[level];
+  const optimal = cols + rows; // rough optimal
+  const stars = moves <= optimal * 1.5 ? 3 : moves <= optimal * 2.5 ? 2 : 1;
+
+  document.getElementById('modalTitle').textContent = 'Maze Cleared!';
+  document.getElementById('modalStars').textContent = '\u{2B50}'.repeat(stars);
+
+  const allGems = collected === collectibles.length && collectibles.length > 0;
+  let msg = `Finished in ${moves} moves!`;
+  if (allGems) msg += ' All stars collected!';
+  document.getElementById('modalText').textContent = msg;
+
+  const isLastLevel = level >= levels.length - 1;
+  document.getElementById('nextBtn').textContent = isLastLevel ? 'Play Again!' : 'Next Maze!';
+
+  document.getElementById('levelModal').classList.remove('hidden');
+}
+
+// ── Start level ────────────────────────────────
+function startLevel() {
+  const cfg = levels[level];
+  document.getElementById('levelNum').textContent = cfg.label;
+
+  initGrid(cfg.cols, cfg.rows);
+  generateMaze();
+
+  // Player starts top-left
+  playerCol = 0;
+  playerRow = 0;
+
+  // Exit at bottom-right
+  exitCol = cols - 1;
+  exitRow = rows - 1;
+
+  placeCollectibles();
+  sizeCanvas();
+
+  playerX = 0;
+  playerY = 0;
+  targetX = 0;
+  targetY = 0;
+  moves = 0;
+  animating = false;
+  document.getElementById('moves').textContent = '0';
+
+  draw();
+
+  // Short countdown then start
+  showCountdown(() => {
+    gameRunning = true;
+  });
+}
+
+function showCountdown(cb) {
+  const overlay = document.getElementById('countdown');
+  const text = document.getElementById('countdownText');
+  overlay.classList.remove('hidden');
+  text.textContent = 'GO!';
+  text.style.animation = 'none';
+  void text.offsetWidth; // reflow
+  text.style.animation = 'countPulse 0.6s ease-out';
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    cb();
+  }, 700);
+}
+
+// ── Controls: D-pad ────────────────────────────
+document.getElementById('btnUp').addEventListener('click', () => movePlayer('up'));
+document.getElementById('btnDown').addEventListener('click', () => movePlayer('down'));
+document.getElementById('btnLeft').addEventListener('click', () => movePlayer('left'));
+document.getElementById('btnRight').addEventListener('click', () => movePlayer('right'));
+
+// ── Controls: Keyboard ─────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); movePlayer('up'); }
+  if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); movePlayer('down'); }
+  if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); movePlayer('left'); }
+  if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); movePlayer('right'); }
+});
+
+// ── Controls: Swipe ────────────────────────────
+let touchStartX = 0, touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+canvas.addEventListener('touchend', (e) => {
+  if (!gameRunning) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  if (Math.max(absDx, absDy) < 20) return; // too small
+
+  if (absDx > absDy) {
+    movePlayer(dx > 0 ? 'right' : 'left');
+  } else {
+    movePlayer(dy > 0 ? 'down' : 'up');
+  }
+});
+
+// ── Next level button ──────────────────────────
+document.getElementById('nextBtn').addEventListener('click', () => {
+  document.getElementById('levelModal').classList.add('hidden');
+  if (level >= levels.length - 1) {
+    level = 0;
+    score = 0;
+    document.getElementById('score').textContent = '0';
+  } else {
+    level++;
+  }
+  startLevel();
+});
+
+// ── Resize handling ────────────────────────────
+window.addEventListener('resize', () => {
+  sizeCanvas();
+  playerX = playerCol * cellSize;
+  playerY = playerRow * cellSize;
+  targetX = playerX;
+  targetY = playerY;
+  draw();
+});
+
+// ── Gem pulse animation ────────────────────────
+function pulseLoop() {
+  if (gameRunning && !animating) draw();
+  requestAnimationFrame(pulseLoop);
+}
+
+// ── Init ───────────────────────────────────────
+startLevel();
+pulseLoop();
+</script>
+</body>
+</html>

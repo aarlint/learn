@@ -115,10 +115,10 @@ export const games: Record<string, GameDef[]> = {
     {
       id: 'maze-runner',
       title: 'Maze Runner',
-      description: 'Guide your guy through the maze to the finish!',
+      description: 'Collect the right numbers to unlock the gate and escape!',
       icon: '🏁',
       accent: '#3b82f6',
-      tags: ['Logic', 'Problem Solving'],
+      tags: ['Math', 'Addition', 'Logic'],
     },
   ],
 }

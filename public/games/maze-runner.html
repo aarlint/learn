@@ -29,31 +29,78 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 8px 12px;
   background: rgba(255,255,255,0.5);
   backdrop-filter: blur(10px);
   border-bottom: 2px solid rgba(255,255,255,0.5);
+  gap: 8px;
 }
 
-.stat {
+.hud-left, .hud-right {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1d4ed8;
+  white-space: nowrap;
 }
 
-.stat-value { color: #2563eb; }
+.hud-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+}
 
 .level-badge {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
-  padding: 8px 20px;
+  padding: 4px 14px;
   border-radius: 50px;
-  font-size: 1.15rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+  white-space: nowrap;
+}
+
+.challenge-label {
+  font-size: 0.7rem;
+  color: #3b82f6;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.backpack {
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.backpack .equation {
+  color: #2563eb;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+}
+
+.backpack .target {
+  color: #9333ea;
+  font-weight: 800;
+}
+
+.score-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .maze-area {
@@ -77,7 +124,6 @@ canvas {
   justify-content: center;
   align-items: center;
   padding: 8px 12px 16px;
-  gap: 0;
 }
 
 .d-pad {
@@ -116,27 +162,39 @@ canvas {
 .d-btn.right { grid-area: right; }
 .d-btn.down  { grid-area: down; }
 
-/* Feedback */
+/* Feedback overlay */
 .feedback {
   position: absolute;
   top: 35%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
   z-index: 20;
-  animation: popIn 0.7s ease-out forwards;
+  animation: popIn 0.8s ease-out forwards;
   text-shadow: 0 4px 15px rgba(0,0,0,0.2);
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .feedback.correct { color: #22c55e; }
+.feedback.wrong { color: #ef4444; }
 
 @keyframes popIn {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  50% { transform: translate(-50%, -50%) scale(1.3); }
+  40% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1) translateY(-40px); }
 }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.shake { animation: shake 0.4s ease-out; }
 
 /* Modal */
 .modal-overlay {
@@ -198,7 +256,7 @@ canvas {
 
 .hidden { display: none !important; }
 
-/* Countdown overlay */
+/* Countdown */
 .countdown-overlay {
   position: absolute;
   inset: 0;
@@ -210,7 +268,7 @@ canvas {
 }
 
 .countdown-text {
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 900;
   color: #1d4ed8;
   text-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -227,15 +285,21 @@ canvas {
 <body>
 <div class="game-container">
   <div class="hud">
-    <div class="stat">
-      <span>&#11088;</span>
-      <span class="stat-value" id="score">0</span>
+    <div class="hud-left">
+      <svg class="score-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span id="score">0</span>
     </div>
-    <div class="level-badge">Level <span id="levelNum">1</span></div>
-    <div class="stat">
-      <span>&#9201;</span>
-      <span class="stat-value" id="moves">0</span>
-      <span style="font-weight:500; font-size:0.85rem"> moves</span>
+    <div class="hud-center">
+      <div class="level-badge">Level <span id="levelNum">1</span></div>
+      <div class="challenge-label" id="challengeLabel">Find the Number!</div>
+    </div>
+    <div class="hud-right">
+      <div class="backpack">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        <span class="equation" id="equation">0</span>
+        <span>/</span>
+        <span class="target" id="targetDisplay">3</span>
+      </div>
     </div>
   </div>
 
@@ -259,10 +323,10 @@ canvas {
 
 <div id="levelModal" class="modal-overlay hidden">
   <div class="modal">
-    <h2 id="modalTitle">You Did It!</h2>
-    <div class="stars" id="modalStars">&#11088;&#11088;&#11088;</div>
-    <p id="modalText">You escaped the maze!</p>
-    <button id="nextBtn">Next Maze!</button>
+    <h2 id="modalTitle">Great Job!</h2>
+    <div class="stars" id="modalStars"></div>
+    <p id="modalText"></p>
+    <button id="nextBtn">Next Level!</button>
   </div>
 </div>
 
@@ -271,35 +335,55 @@ const canvas = document.getElementById('maze');
 const ctx = canvas.getContext('2d');
 
 // ── Level configs ──────────────────────────────
-// Each level defines maze grid size (cols x rows)
+// Type 1: "Find the Number!" (levels 1-3) - find the single matching number
+// Type 2: "Add It Up!" (levels 4-7) - add 2 numbers to hit target
+// Type 3: "Count to Win!" (levels 8-10) - add 3 numbers to hit target
 const levels = [
-  { cols: 4, rows: 4,  label: '1' },
-  { cols: 5, rows: 5,  label: '2' },
-  { cols: 6, rows: 5,  label: '3' },
-  { cols: 6, rows: 6,  label: '4' },
-  { cols: 7, rows: 6,  label: '5' },
-  { cols: 7, rows: 7,  label: '6' },
-  { cols: 8, rows: 7,  label: '7' },
-  { cols: 8, rows: 8,  label: '8' },
-  { cols: 9, rows: 8,  label: '9' },
-  { cols: 10, rows: 9, label: '10' },
+  // Type 1: Find the Number!
+  { cols: 5, rows: 5, type: 1, label: 'Find the Number!', target: 3,  tokenCount: 5 },
+  { cols: 5, rows: 5, type: 1, label: 'Find the Number!', target: 5,  tokenCount: 5 },
+  { cols: 6, rows: 5, type: 1, label: 'Find the Number!', target: 7,  tokenCount: 6 },
+  // Type 2: Add It Up!
+  { cols: 6, rows: 6, type: 2, label: 'Add It Up!',       target: 5,  tokenCount: 6 },
+  { cols: 7, rows: 6, type: 2, label: 'Add It Up!',       target: 7,  tokenCount: 7 },
+  { cols: 7, rows: 7, type: 2, label: 'Add It Up!',       target: 8,  tokenCount: 8 },
+  { cols: 8, rows: 7, type: 2, label: 'Add It Up!',       target: 10, tokenCount: 8 },
+  // Type 3: Count to Win!
+  { cols: 8, rows: 7,  type: 3, label: 'Count to Win!', target: 10, tokenCount: 9 },
+  { cols: 8, rows: 8,  type: 3, label: 'Count to Win!', target: 12, tokenCount: 10 },
+  { cols: 9, rows: 8,  type: 3, label: 'Count to Win!', target: 15, tokenCount: 11 },
+];
+
+// ── Color palette for number tokens ────────────
+const tokenColors = [
+  '#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#10b981'
 ];
 
 // ── State ──────────────────────────────────────
 let level = 0;
 let score = 0;
-let moves = 0;
-let grid = [];       // 2D array of cells
+let grid = [];
 let cols, rows;
 let cellSize;
 let playerCol = 0, playerRow = 0;
 let exitCol, exitRow;
 let gameRunning = false;
 let animating = false;
-let playerX, playerY;  // pixel positions for smooth movement
+let playerX, playerY;
 let targetX, targetY;
-let collectibles = [];
-let collected = 0;
+
+// Math challenge state
+let tokens = [];          // {col, row, value, collected, animPhase}
+let collectedNumbers = []; // ordered list of collected values
+let currentTotal = 0;
+let targetNumber = 0;
+let gateOpen = false;
+
+// Animations
+let collectAnimations = []; // {x, y, text, startTime}
+let sparkles = [];          // {x, y, startTime}
+let shakeUntil = 0;
 
 // ── Maze generation (recursive backtracker) ────
 function initGrid(c, r) {
@@ -331,7 +415,6 @@ function generateMaze() {
 
     if (neighbors.length > 0) {
       const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-      // Remove walls between current and next
       if (next.dir === 'top')    { grid[row][col].top = false; grid[next.row][next.col].bottom = false; }
       if (next.dir === 'right')  { grid[row][col].right = false; grid[next.row][next.col].left = false; }
       if (next.dir === 'bottom') { grid[row][col].bottom = false; grid[next.row][next.col].top = false; }
@@ -346,29 +429,152 @@ function generateMaze() {
   }
 }
 
-// ── Place collectible gems ─────────────────────
-function placeCollectibles() {
-  collectibles = [];
-  collected = 0;
-  // Place 2-4 gems depending on level
-  const count = Math.min(2 + Math.floor(level / 3), 4);
-  const used = new Set();
-  used.add('0,0');
-  used.add(`${exitCol},${exitRow}`);
+// ── BFS to find reachable cells (for token placement) ──
+function bfsReachable(startCol, startRow) {
+  const visited = new Set();
+  const queue = [{ col: startCol, row: startRow }];
+  visited.add(`${startCol},${startRow}`);
 
-  for (let i = 0; i < count; i++) {
-    let attempts = 0;
-    while (attempts < 50) {
-      const c = Math.floor(Math.random() * cols);
-      const r = Math.floor(Math.random() * rows);
-      const key = `${c},${r}`;
-      if (!used.has(key)) {
-        used.add(key);
-        collectibles.push({ col: c, row: r, collected: false });
-        break;
+  while (queue.length > 0) {
+    const { col, row } = queue.shift();
+    const cell = grid[row][col];
+    const dirs = [
+      { dc: 0, dr: -1, wall: 'top' },
+      { dc: 1, dr: 0, wall: 'right' },
+      { dc: 0, dr: 1, wall: 'bottom' },
+      { dc: -1, dr: 0, wall: 'left' }
+    ];
+    for (const d of dirs) {
+      const nc = col + d.dc, nr = row + d.dr;
+      const key = `${nc},${nr}`;
+      if (nc >= 0 && nc < cols && nr >= 0 && nr < rows && !cell[d.wall] && !visited.has(key)) {
+        visited.add(key);
+        queue.push({ col: nc, row: nr });
       }
-      attempts++;
     }
+  }
+  return visited;
+}
+
+// ── Place number tokens ────────────────────────
+function placeTokens() {
+  tokens = [];
+  collectedNumbers = [];
+  currentTotal = 0;
+  gateOpen = false;
+
+  const cfg = levels[level];
+  targetNumber = cfg.target;
+  const type = cfg.type;
+
+  const reachable = bfsReachable(0, 0);
+  const reserved = new Set();
+  reserved.add('0,0');
+  reserved.add(`${exitCol},${exitRow}`);
+
+  const available = [];
+  for (const key of reachable) {
+    if (!reserved.has(key)) available.push(key);
+  }
+  // Shuffle available positions
+  for (let i = available.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [available[i], available[j]] = [available[j], available[i]];
+  }
+
+  let values = [];
+
+  if (type === 1) {
+    // "Find the Number!" - one correct number, rest are distractors
+    values.push(targetNumber);
+    const distractors = [];
+    for (let n = 1; n <= 9; n++) {
+      if (n !== targetNumber) distractors.push(n);
+    }
+    // Shuffle and pick some distractors
+    for (let i = distractors.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+    }
+    const numDistractors = Math.min(cfg.tokenCount - 1, distractors.length, available.length - 1);
+    for (let i = 0; i < numDistractors; i++) {
+      values.push(distractors[i]);
+    }
+  } else if (type === 2) {
+    // "Add It Up!" - need 2 numbers that sum to target, plus distractors
+    const a = Math.floor(Math.random() * (targetNumber - 1)) + 1;
+    const b = targetNumber - a;
+    values.push(a, b);
+    // Add distractors that don't individually equal target
+    const distractors = [];
+    for (let n = 1; n <= 9; n++) {
+      if (n !== targetNumber) distractors.push(n);
+    }
+    for (let i = distractors.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+    }
+    const numDistractors = Math.min(cfg.tokenCount - 2, distractors.length, available.length - 2);
+    for (let i = 0; i < numDistractors; i++) {
+      values.push(distractors[i]);
+    }
+  } else {
+    // "Count to Win!" - need 3 numbers that sum to target, plus distractors
+    // Generate 3 numbers summing to target
+    const maxVal = Math.min(9, targetNumber - 2);
+    const a = Math.floor(Math.random() * (maxVal - 1)) + 1;
+    const remaining = targetNumber - a;
+    const maxB = Math.min(9, remaining - 1);
+    const b = Math.floor(Math.random() * (maxB - 1)) + 1;
+    const c = remaining - b;
+    values.push(a, b, c);
+    // Distractors
+    const distractors = [];
+    for (let n = 1; n <= 9; n++) {
+      distractors.push(n);
+    }
+    for (let i = distractors.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+    }
+    const numDistractors = Math.min(cfg.tokenCount - 3, distractors.length, available.length - 3);
+    for (let i = 0; i < numDistractors; i++) {
+      values.push(distractors[i]);
+    }
+  }
+
+  // Shuffle values for random placement
+  for (let i = values.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [values[i], values[j]] = [values[j], values[i]];
+  }
+
+  // Place tokens on available cells
+  const count = Math.min(values.length, available.length);
+  for (let i = 0; i < count; i++) {
+    const [c, r] = available[i].split(',').map(Number);
+    tokens.push({
+      col: c, row: r,
+      value: values[i],
+      collected: false,
+      bobOffset: Math.random() * Math.PI * 2  // random bob phase
+    });
+  }
+
+  updateHUD();
+}
+
+// ── HUD updates ────────────────────────────────
+function updateHUD() {
+  const eqEl = document.getElementById('equation');
+  const targetEl = document.getElementById('targetDisplay');
+
+  targetEl.textContent = targetNumber;
+
+  if (collectedNumbers.length === 0) {
+    eqEl.textContent = '0';
+  } else {
+    eqEl.textContent = collectedNumbers.join(' + ') + ' = ' + currentTotal;
   }
 }
 
@@ -379,7 +585,6 @@ function sizeCanvas() {
   const maxH = area.clientHeight - 16;
   const dpr = window.devicePixelRatio || 1;
 
-  // Calculate cell size to fit the maze in available space
   const cs = Math.floor(Math.min(maxW / cols, maxH / rows));
   cellSize = cs;
 
@@ -397,16 +602,25 @@ function sizeCanvas() {
 const wallColor = '#1e3a5f';
 const pathColor = '#e0f2fe';
 const playerColor = '#3b82f6';
-const exitColor = '#22c55e';
-const gemColor = '#f59e0b';
 
 function draw() {
+  const now = Date.now();
   const w = cols * cellSize;
   const h = rows * cellSize;
 
+  // Apply shake
+  ctx.save();
+  if (now < shakeUntil) {
+    const intensity = 6 * ((shakeUntil - now) / 400);
+    ctx.translate(
+      Math.sin(now * 0.05) * intensity,
+      Math.cos(now * 0.07) * intensity
+    );
+  }
+
   // Background
   ctx.fillStyle = pathColor;
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(-10, -10, w + 20, h + 20);
 
   // Draw cells
   ctx.strokeStyle = wallColor;
@@ -426,65 +640,178 @@ function draw() {
     }
   }
 
-  // Draw exit (green flag area)
-  const ex = exitCol * cellSize;
-  const ey = exitRow * cellSize;
-  const pad = cellSize * 0.15;
-  ctx.fillStyle = 'rgba(34, 197, 94, 0.25)';
-  ctx.fillRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
-  // Flag emoji via text
-  ctx.font = `${cellSize * 0.55}px system-ui`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('\u{1F3C1}', ex + cellSize / 2, ey + cellSize / 2);
+  // Draw exit gate
+  drawGate(now);
 
-  // Draw collectible gems
-  collectibles.forEach(g => {
-    if (g.collected) return;
-    const gx = g.col * cellSize + cellSize / 2;
-    const gy = g.row * cellSize + cellSize / 2;
-    const pulse = 1 + Math.sin(Date.now() * 0.004) * 0.1;
-    ctx.font = `${cellSize * 0.4 * pulse}px system-ui`;
+  // Draw number tokens
+  tokens.forEach((t, i) => {
+    if (t.collected) return;
+    const tx = t.col * cellSize + cellSize / 2;
+    const ty = t.row * cellSize + cellSize / 2;
+    const bob = Math.sin(now * 0.003 + t.bobOffset) * cellSize * 0.04;
+    const pulse = 1 + Math.sin(now * 0.004 + t.bobOffset) * 0.08;
+
+    const radius = cellSize * 0.34 * pulse;
+    const color = tokenColors[t.value % tokenColors.length];
+
+    // Circle background
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(tx, ty + bob, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // White inner circle
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(tx, ty + bob, radius * 0.75, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Number text
+    ctx.fillStyle = color;
+    ctx.font = `bold ${cellSize * 0.38}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('\u{2B50}', gx, gy);
+    ctx.fillText(t.value, tx, ty + bob + 1);
   });
 
-  // Draw player
-  const pr = cellSize * 0.32;
-  ctx.fillStyle = playerColor;
-  ctx.shadowColor = 'rgba(59,130,246,0.4)';
-  ctx.shadowBlur = 12;
-  ctx.beginPath();
-  ctx.arc(playerX + cellSize / 2, playerY + cellSize / 2, pr, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  // Draw collect animations
+  collectAnimations = collectAnimations.filter(a => now - a.startTime < 800);
+  collectAnimations.forEach(a => {
+    const elapsed = now - a.startTime;
+    const progress = elapsed / 800;
+    const y = a.y - progress * cellSize * 0.8;
+    const opacity = 1 - progress;
+    const scale = 1 + progress * 0.5;
 
-  // Face on player
-  const faceX = playerX + cellSize / 2;
-  const faceY = playerY + cellSize / 2;
-  // Eyes
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.arc(faceX - pr * 0.3, faceY - pr * 0.15, pr * 0.18, 0, Math.PI * 2);
-  ctx.arc(faceX + pr * 0.3, faceY - pr * 0.15, pr * 0.18, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#1e3a5f';
-  ctx.beginPath();
-  ctx.arc(faceX - pr * 0.3, faceY - pr * 0.15, pr * 0.09, 0, Math.PI * 2);
-  ctx.arc(faceX + pr * 0.3, faceY - pr * 0.15, pr * 0.09, 0, Math.PI * 2);
-  ctx.fill();
-  // Smile
-  ctx.strokeStyle = '#1e3a5f';
-  ctx.lineWidth = Math.max(1.5, pr * 0.1);
-  ctx.beginPath();
-  ctx.arc(faceX, faceY + pr * 0.05, pr * 0.25, 0.1 * Math.PI, 0.9 * Math.PI);
-  ctx.stroke();
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.font = `bold ${cellSize * 0.35 * scale}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#22c55e';
+    ctx.fillText(a.text, a.x, y);
+    ctx.restore();
+  });
+
+  // Draw sparkles on gate when open
+  if (gateOpen) {
+    sparkles = sparkles.filter(s => now - s.startTime < 1000);
+    sparkles.forEach(s => {
+      const elapsed = now - s.startTime;
+      const progress = elapsed / 1000;
+      const opacity = 1 - progress;
+      const size = cellSize * 0.06 * (1 - progress);
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Generate new sparkles
+    if (Math.random() < 0.3) {
+      const ex = exitCol * cellSize + Math.random() * cellSize;
+      const ey = exitRow * cellSize + Math.random() * cellSize;
+      sparkles.push({ x: ex, y: ey, startTime: now });
+    }
+  }
+
+  // Draw player
+  drawPlayer();
 
   // Outer border
   ctx.strokeStyle = wallColor;
   ctx.lineWidth = Math.max(4, cellSize * 0.1);
   ctx.strokeRect(0, 0, w, h);
+
+  ctx.restore(); // undo shake transform
+}
+
+function drawGate(now) {
+  const ex = exitCol * cellSize;
+  const ey = exitRow * cellSize;
+  const pad = cellSize * 0.08;
+
+  if (gateOpen) {
+    // Green open gate
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
+    ctx.fillRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
+
+    // Green border
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = Math.max(2, cellSize * 0.06);
+    ctx.strokeRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
+
+    // Checkmark
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = Math.max(3, cellSize * 0.08);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ex + cellSize * 0.25, ey + cellSize * 0.5);
+    ctx.lineTo(ex + cellSize * 0.42, ey + cellSize * 0.68);
+    ctx.lineTo(ex + cellSize * 0.75, ey + cellSize * 0.32);
+    ctx.stroke();
+  } else {
+    // Red locked gate
+    const pulse = 1 + Math.sin(now * 0.003) * 0.05;
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+    ctx.fillRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
+
+    // Red border with pulse
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = Math.max(2, cellSize * 0.06 * pulse);
+    ctx.strokeRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
+
+    // Target number on gate
+    ctx.fillStyle = '#ef4444';
+    ctx.font = `bold ${cellSize * 0.4}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(targetNumber, ex + cellSize / 2, ey + cellSize / 2);
+
+    // Lock icon (small, below number)
+    ctx.font = `${cellSize * 0.18}px system-ui`;
+    ctx.fillText('\u{1F512}', ex + cellSize / 2, ey + cellSize * 0.8);
+  }
+}
+
+function drawPlayer() {
+  const pr = cellSize * 0.32;
+  const cx = playerX + cellSize / 2;
+  const cy = playerY + cellSize / 2;
+
+  ctx.fillStyle = playerColor;
+  ctx.shadowColor = 'rgba(59,130,246,0.4)';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Eyes
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(cx - pr * 0.3, cy - pr * 0.15, pr * 0.18, 0, Math.PI * 2);
+  ctx.arc(cx + pr * 0.3, cy - pr * 0.15, pr * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1e3a5f';
+  ctx.beginPath();
+  ctx.arc(cx - pr * 0.3, cy - pr * 0.15, pr * 0.09, 0, Math.PI * 2);
+  ctx.arc(cx + pr * 0.3, cy - pr * 0.15, pr * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#1e3a5f';
+  ctx.lineWidth = Math.max(1.5, pr * 0.1);
+  ctx.beginPath();
+  ctx.arc(cx, cy + pr * 0.05, pr * 0.25, 0.1 * Math.PI, 0.9 * Math.PI);
+  ctx.stroke();
 }
 
 // ── Movement ───────────────────────────────────
@@ -509,13 +836,9 @@ function movePlayer(dir) {
   if (dir === 'left') newCol--;
   if (dir === 'right') newCol++;
 
-  moves++;
-  document.getElementById('moves').textContent = moves;
-
   playerCol = newCol;
   playerRow = newRow;
 
-  // Animate
   targetX = newCol * cellSize;
   targetY = newRow * cellSize;
   animating = true;
@@ -545,25 +868,50 @@ function animateMove() {
 }
 
 function checkCell() {
-  // Check gems
-  collectibles.forEach(g => {
-    if (!g.collected && g.col === playerCol && g.row === playerRow) {
-      g.collected = true;
-      collected++;
-      score += 25;
-      document.getElementById('score').textContent = score;
-      showFeedback('+25');
+  // Check number tokens
+  tokens.forEach(t => {
+    if (!t.collected && t.col === playerCol && t.row === playerRow) {
+      t.collected = true;
+      collectedNumbers.push(t.value);
+      currentTotal += t.value;
+      updateHUD();
+
+      // Collect animation
+      const tx = t.col * cellSize + cellSize / 2;
+      const ty = t.row * cellSize + cellSize / 2;
+      collectAnimations.push({ x: tx, y: ty, text: '+' + t.value, startTime: Date.now() });
+
+      if (currentTotal === targetNumber) {
+        // Exact match — unlock gate!
+        gateOpen = true;
+        score += 25 * collectedNumbers.length;
+        document.getElementById('score').textContent = score;
+        showFeedback('Gate Open!', 'correct');
+        // Add initial sparkles
+        for (let i = 0; i < 8; i++) {
+          sparkles.push({
+            x: exitCol * cellSize + Math.random() * cellSize,
+            y: exitRow * cellSize + Math.random() * cellSize,
+            startTime: Date.now() + i * 50
+          });
+        }
+      } else if (currentTotal > targetNumber) {
+        // Overshoot — reset!
+        gameRunning = false;
+        shakeUntil = Date.now() + 400;
+        showFeedback('Too many! ' + currentTotal + ' > ' + targetNumber, 'wrong');
+        setTimeout(() => {
+          resetLevel();
+        }, 1200);
+        return;
+      }
     }
   });
 
   // Check exit
-  if (playerCol === exitCol && playerRow === exitRow) {
+  if (playerCol === exitCol && playerRow === exitRow && gateOpen) {
     gameRunning = false;
     score += 50;  // completion bonus
-    // Bonus for uncollected gems = 0; bonus for collecting all
-    if (collected === collectibles.length && collectibles.length > 0) {
-      score += 50;
-    }
     document.getElementById('score').textContent = score;
     setTimeout(showLevelComplete, 300);
   }
@@ -571,29 +919,52 @@ function checkCell() {
   draw();
 }
 
-function showFeedback(text) {
+function showFeedback(text, type) {
   const el = document.getElementById('feedback');
   el.textContent = text;
-  el.className = 'feedback correct';
-  setTimeout(() => el.classList.add('hidden'), 700);
+  el.className = 'feedback ' + type;
+  setTimeout(() => el.classList.add('hidden'), 800);
+}
+
+// ── Reset current level (on overshoot) ─────────
+function resetLevel() {
+  // Reset tokens
+  tokens.forEach(t => t.collected = false);
+  collectedNumbers = [];
+  currentTotal = 0;
+  gateOpen = false;
+
+  // Reset player position
+  playerCol = 0;
+  playerRow = 0;
+  playerX = 0;
+  playerY = 0;
+  targetX = 0;
+  targetY = 0;
+  animating = false;
+
+  updateHUD();
+  draw();
+
+  showCountdown(() => {
+    gameRunning = true;
+  });
 }
 
 // ── Level complete ─────────────────────────────
 function showLevelComplete() {
   const cfg = levels[level];
-  const optimal = cols + rows; // rough optimal
-  const stars = moves <= optimal * 1.5 ? 3 : moves <= optimal * 2.5 ? 2 : 1;
+  const stars = collectedNumbers.length <= (cfg.type === 1 ? 1 : cfg.type === 2 ? 2 : 3) ? 3 : 2;
 
-  document.getElementById('modalTitle').textContent = 'Maze Cleared!';
-  document.getElementById('modalStars').textContent = '\u{2B50}'.repeat(stars);
+  document.getElementById('modalTitle').textContent = 'Great Job!';
+  document.getElementById('modalStars').innerHTML =
+    '<svg width="40" height="40" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'.repeat(stars);
 
-  const allGems = collected === collectibles.length && collectibles.length > 0;
-  let msg = `Finished in ${moves} moves!`;
-  if (allGems) msg += ' All stars collected!';
-  document.getElementById('modalText').textContent = msg;
+  const equation = collectedNumbers.join(' + ') + ' = ' + targetNumber;
+  document.getElementById('modalText').textContent = equation;
 
   const isLastLevel = level >= levels.length - 1;
-  document.getElementById('nextBtn').textContent = isLastLevel ? 'Play Again!' : 'Next Maze!';
+  document.getElementById('nextBtn').textContent = isLastLevel ? 'Play Again!' : 'Next Level!';
 
   document.getElementById('levelModal').classList.remove('hidden');
 }
@@ -601,33 +972,31 @@ function showLevelComplete() {
 // ── Start level ────────────────────────────────
 function startLevel() {
   const cfg = levels[level];
-  document.getElementById('levelNum').textContent = cfg.label;
+  document.getElementById('levelNum').textContent = level + 1;
+  document.getElementById('challengeLabel').textContent = cfg.label;
 
   initGrid(cfg.cols, cfg.rows);
   generateMaze();
 
-  // Player starts top-left
   playerCol = 0;
   playerRow = 0;
-
-  // Exit at bottom-right
   exitCol = cols - 1;
   exitRow = rows - 1;
 
-  placeCollectibles();
+  placeTokens();
   sizeCanvas();
 
   playerX = 0;
   playerY = 0;
   targetX = 0;
   targetY = 0;
-  moves = 0;
   animating = false;
-  document.getElementById('moves').textContent = '0';
+  collectAnimations = [];
+  sparkles = [];
+  shakeUntil = 0;
 
   draw();
 
-  // Short countdown then start
   showCountdown(() => {
     gameRunning = true;
   });
@@ -639,7 +1008,7 @@ function showCountdown(cb) {
   overlay.classList.remove('hidden');
   text.textContent = 'GO!';
   text.style.animation = 'none';
-  void text.offsetWidth; // reflow
+  void text.offsetWidth;
   text.style.animation = 'countPulse 0.6s ease-out';
   setTimeout(() => {
     overlay.classList.add('hidden');
@@ -676,7 +1045,7 @@ canvas.addEventListener('touchend', (e) => {
   const absDx = Math.abs(dx);
   const absDy = Math.abs(dy);
 
-  if (Math.max(absDx, absDy) < 20) return; // too small
+  if (Math.max(absDx, absDy) < 20) return;
 
   if (absDx > absDy) {
     movePlayer(dx > 0 ? 'right' : 'left');
@@ -708,15 +1077,17 @@ window.addEventListener('resize', () => {
   draw();
 });
 
-// ── Gem pulse animation ────────────────────────
-function pulseLoop() {
-  if (gameRunning && !animating) draw();
-  requestAnimationFrame(pulseLoop);
+// ── Animation loop ─────────────────────────────
+function renderLoop() {
+  if (gameRunning || Date.now() < shakeUntil || collectAnimations.length > 0 || sparkles.length > 0) {
+    draw();
+  }
+  requestAnimationFrame(renderLoop);
 }
 
 // ── Init ───────────────────────────────────────
 startLevel();
-pulseLoop();
+renderLoop();
 </script>
 </body>
 </html>

@@ -692,12 +692,16 @@ function drawGate(now) {
     ctx.lineWidth = Math.max(2, cellSize * 0.06);
     ctx.strokeRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
 
-    // Lock icon
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = `bold ${cellSize * 0.35}px 'Segoe UI', system-ui, sans-serif`;
+    // Target number on the lock so kids know the goal
+    ctx.fillStyle = '#6b7280';
+    ctx.font = `bold ${cellSize * 0.4}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('\u{1F512}', ex + cellSize / 2, ey + cellSize / 2);
+    ctx.fillText(targetNumber, ex + cellSize / 2, ey + cellSize * 0.42);
+
+    // Small lock icon below the number
+    ctx.font = `${cellSize * 0.2}px system-ui`;
+    ctx.fillText('\u{1F512}', ex + cellSize / 2, ey + cellSize * 0.72);
   }
 }
 

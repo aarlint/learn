@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Maze Runner</title>
+<title>Number Collector</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -103,7 +103,7 @@ body {
   justify-content: center;
 }
 
-.maze-area {
+.arena-area {
   flex: 1;
   display: flex;
   align-items: center;
@@ -303,8 +303,8 @@ canvas {
     </div>
   </div>
 
-  <div class="maze-area">
-    <canvas id="maze"></canvas>
+  <div class="arena-area">
+    <canvas id="arena"></canvas>
     <div id="feedback" class="feedback hidden"></div>
     <div id="countdown" class="countdown-overlay hidden">
       <div class="countdown-text" id="countdownText"></div>
@@ -331,39 +331,32 @@ canvas {
 </div>
 
 <script>
-const canvas = document.getElementById('maze');
+const canvas = document.getElementById('arena');
 const ctx = canvas.getContext('2d');
 
 // ── Level configs ──────────────────────────────
-// Type 1: "Find the Number!" (levels 1-3) - find the single matching number
-// Type 2: "Add It Up!" (levels 4-7) - add 2 numbers to hit target
-// Type 3: "Count to Win!" (levels 8-10) - add 3 numbers to hit target
+// Type 1: "Find the Number!" (levels 1-3) - small arena, positive only, target is a single number
+// Type 2: "Add It Up!" (levels 4-7) - medium arena, positives + small negatives
+// Type 3: "Plus and Minus!" (levels 8-10) - larger arena, more negatives, strategy needed
 const levels = [
   // Type 1: Find the Number!
-  { cols: 5, rows: 5, type: 1, label: 'Find the Number!', target: 3,  tokenCount: 5 },
-  { cols: 5, rows: 5, type: 1, label: 'Find the Number!', target: 5,  tokenCount: 5 },
-  { cols: 6, rows: 5, type: 1, label: 'Find the Number!', target: 7,  tokenCount: 6 },
+  { cols: 6,  rows: 6,  type: 1, label: 'Find the Number!', target: 3,  tokenCount: 8 },
+  { cols: 7,  rows: 7,  type: 1, label: 'Find the Number!', target: 5,  tokenCount: 10 },
+  { cols: 8,  rows: 8,  type: 1, label: 'Find the Number!', target: 7,  tokenCount: 12 },
   // Type 2: Add It Up!
-  { cols: 6, rows: 6, type: 2, label: 'Add It Up!',       target: 5,  tokenCount: 6 },
-  { cols: 7, rows: 6, type: 2, label: 'Add It Up!',       target: 7,  tokenCount: 7 },
-  { cols: 7, rows: 7, type: 2, label: 'Add It Up!',       target: 8,  tokenCount: 8 },
-  { cols: 8, rows: 7, type: 2, label: 'Add It Up!',       target: 10, tokenCount: 8 },
-  // Type 3: Count to Win!
-  { cols: 8, rows: 7,  type: 3, label: 'Count to Win!', target: 10, tokenCount: 9 },
-  { cols: 8, rows: 8,  type: 3, label: 'Count to Win!', target: 12, tokenCount: 10 },
-  { cols: 9, rows: 8,  type: 3, label: 'Count to Win!', target: 15, tokenCount: 11 },
-];
-
-// ── Color palette for number tokens ────────────
-const tokenColors = [
-  '#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6',
-  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#10b981'
+  { cols: 8,  rows: 8,  type: 2, label: 'Add It Up!',       target: 5,  tokenCount: 12 },
+  { cols: 9,  rows: 9,  type: 2, label: 'Add It Up!',       target: 7,  tokenCount: 14 },
+  { cols: 10, rows: 10, type: 2, label: 'Add It Up!',       target: 9,  tokenCount: 16 },
+  { cols: 10, rows: 10, type: 2, label: 'Add It Up!',       target: 10, tokenCount: 16 },
+  // Type 3: Plus and Minus!
+  { cols: 11, rows: 11, type: 3, label: 'Plus and Minus!',  target: 10, tokenCount: 20 },
+  { cols: 12, rows: 12, type: 3, label: 'Plus and Minus!',  target: 12, tokenCount: 22 },
+  { cols: 12, rows: 12, type: 3, label: 'Plus and Minus!',  target: 15, tokenCount: 24 },
 ];
 
 // ── State ──────────────────────────────────────
 let level = 0;
 let score = 0;
-let grid = [];
 let cols, rows;
 let cellSize;
 let playerCol = 0, playerRow = 0;
@@ -374,86 +367,23 @@ let playerX, playerY;
 let targetX, targetY;
 
 // Math challenge state
-let tokens = [];          // {col, row, value, collected, animPhase}
+let tokens = [];           // {col, row, value, collected, bobOffset}
 let collectedNumbers = []; // ordered list of collected values
 let currentTotal = 0;
 let targetNumber = 0;
 let gateOpen = false;
 
 // Animations
-let collectAnimations = []; // {x, y, text, startTime}
+let collectAnimations = []; // {x, y, text, color, startTime}
 let sparkles = [];          // {x, y, startTime}
-let shakeUntil = 0;
 
-// ── Maze generation (recursive backtracker) ────
-function initGrid(c, r) {
-  cols = c;
-  rows = r;
-  grid = [];
-  for (let row = 0; row < rows; row++) {
-    grid[row] = [];
-    for (let col = 0; col < cols; col++) {
-      grid[row][col] = { top: true, right: true, bottom: true, left: true, visited: false };
-    }
-  }
-}
-
-function generateMaze() {
-  const stack = [];
-  let current = { col: 0, row: 0 };
-  grid[0][0].visited = true;
-  stack.push(current);
-
-  while (stack.length > 0) {
-    const neighbors = [];
-    const { col, row } = current;
-
-    if (row > 0 && !grid[row - 1][col].visited) neighbors.push({ col, row: row - 1, dir: 'top' });
-    if (col < cols - 1 && !grid[row][col + 1].visited) neighbors.push({ col: col + 1, row, dir: 'right' });
-    if (row < rows - 1 && !grid[row + 1][col].visited) neighbors.push({ col, row: row + 1, dir: 'bottom' });
-    if (col > 0 && !grid[row][col - 1].visited) neighbors.push({ col: col - 1, row, dir: 'left' });
-
-    if (neighbors.length > 0) {
-      const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-      if (next.dir === 'top')    { grid[row][col].top = false; grid[next.row][next.col].bottom = false; }
-      if (next.dir === 'right')  { grid[row][col].right = false; grid[next.row][next.col].left = false; }
-      if (next.dir === 'bottom') { grid[row][col].bottom = false; grid[next.row][next.col].top = false; }
-      if (next.dir === 'left')   { grid[row][col].left = false; grid[next.row][next.col].right = false; }
-
-      grid[next.row][next.col].visited = true;
-      stack.push(current);
-      current = next;
-    } else {
-      current = stack.pop();
-    }
-  }
-}
-
-// ── BFS to find reachable cells (for token placement) ──
-function bfsReachable(startCol, startRow) {
-  const visited = new Set();
-  const queue = [{ col: startCol, row: startRow }];
-  visited.add(`${startCol},${startRow}`);
-
-  while (queue.length > 0) {
-    const { col, row } = queue.shift();
-    const cell = grid[row][col];
-    const dirs = [
-      { dc: 0, dr: -1, wall: 'top' },
-      { dc: 1, dr: 0, wall: 'right' },
-      { dc: 0, dr: 1, wall: 'bottom' },
-      { dc: -1, dr: 0, wall: 'left' }
-    ];
-    for (const d of dirs) {
-      const nc = col + d.dc, nr = row + d.dr;
-      const key = `${nc},${nr}`;
-      if (nc >= 0 && nc < cols && nr >= 0 && nr < rows && !cell[d.wall] && !visited.has(key)) {
-        visited.add(key);
-        queue.push({ col: nc, row: nr });
-      }
-    }
-  }
-  return visited;
+// ── Movement: boundary check only (no walls!) ──
+function canMove(dir) {
+  if (dir === 'up')    return playerRow > 0;
+  if (dir === 'down')  return playerRow < rows - 1;
+  if (dir === 'left')  return playerCol > 0;
+  if (dir === 'right') return playerCol < cols - 1;
+  return false;
 }
 
 // ── Place number tokens ────────────────────────
@@ -467,16 +397,20 @@ function placeTokens() {
   targetNumber = cfg.target;
   const type = cfg.type;
 
-  const reachable = bfsReachable(0, 0);
+  // Build set of reserved positions (player start + exit)
   const reserved = new Set();
   reserved.add('0,0');
   reserved.add(`${exitCol},${exitRow}`);
 
+  // All available positions
   const available = [];
-  for (const key of reachable) {
-    if (!reserved.has(key)) available.push(key);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const key = `${c},${r}`;
+      if (!reserved.has(key)) available.push(key);
+    }
   }
-  // Shuffle available positions
+  // Shuffle
   for (let i = available.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [available[i], available[j]] = [available[j], available[i]];
@@ -485,69 +419,50 @@ function placeTokens() {
   let values = [];
 
   if (type === 1) {
-    // "Find the Number!" - one correct number, rest are distractors
+    // "Find the Number!" - one correct number, rest are positive distractors
     values.push(targetNumber);
     const distractors = [];
     for (let n = 1; n <= 9; n++) {
       if (n !== targetNumber) distractors.push(n);
     }
-    // Shuffle and pick some distractors
-    for (let i = distractors.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
-    }
-    const numDistractors = Math.min(cfg.tokenCount - 1, distractors.length, available.length - 1);
-    for (let i = 0; i < numDistractors; i++) {
-      values.push(distractors[i]);
-    }
+    shuffle(distractors);
+    const numDistractors = Math.min(cfg.tokenCount - 1, distractors.length);
+    for (let i = 0; i < numDistractors; i++) values.push(distractors[i]);
+
   } else if (type === 2) {
-    // "Add It Up!" - need 2 numbers that sum to target, plus distractors
-    const a = Math.floor(Math.random() * (targetNumber - 1)) + 1;
+    // "Add It Up!" - need 2+ numbers that sum to target, plus distractors and a few negatives
+    const a = randInt(1, targetNumber - 1);
     const b = targetNumber - a;
     values.push(a, b);
-    // Add distractors that don't individually equal target
+    // Add some positive distractors
     const distractors = [];
-    for (let n = 1; n <= 9; n++) {
-      if (n !== targetNumber) distractors.push(n);
-    }
-    for (let i = distractors.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
-    }
-    const numDistractors = Math.min(cfg.tokenCount - 2, distractors.length, available.length - 2);
-    for (let i = 0; i < numDistractors; i++) {
-      values.push(distractors[i]);
-    }
+    for (let n = 1; n <= 9; n++) distractors.push(n);
+    shuffle(distractors);
+    const numPos = Math.min(Math.floor((cfg.tokenCount - 2) * 0.6), distractors.length);
+    for (let i = 0; i < numPos; i++) values.push(distractors[i]);
+    // Add a few small negatives for undo
+    const numNeg = cfg.tokenCount - values.length;
+    for (let i = 0; i < numNeg; i++) values.push(-randInt(1, 3));
+
   } else {
-    // "Count to Win!" - need 3 numbers that sum to target, plus distractors
-    // Generate 3 numbers summing to target
+    // "Plus and Minus!" - multiple ways to reach target, lots of positives and negatives
+    // Guarantee a valid solution set of 3 positives
     const maxVal = Math.min(9, targetNumber - 2);
-    const a = Math.floor(Math.random() * (maxVal - 1)) + 1;
+    const a = randInt(1, maxVal);
     const remaining = targetNumber - a;
     const maxB = Math.min(9, remaining - 1);
-    const b = Math.floor(Math.random() * (maxB - 1)) + 1;
+    const b = randInt(1, maxB);
     const c = remaining - b;
     values.push(a, b, c);
-    // Distractors
-    const distractors = [];
-    for (let n = 1; n <= 9; n++) {
-      distractors.push(n);
-    }
-    for (let i = distractors.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
-    }
-    const numDistractors = Math.min(cfg.tokenCount - 3, distractors.length, available.length - 3);
-    for (let i = 0; i < numDistractors; i++) {
-      values.push(distractors[i]);
-    }
+    // Mix of extra positives and negatives
+    const extras = cfg.tokenCount - 3;
+    const numNeg = Math.floor(extras * 0.4);
+    const numPos = extras - numNeg;
+    for (let i = 0; i < numPos; i++) values.push(randInt(1, 9));
+    for (let i = 0; i < numNeg; i++) values.push(-randInt(1, 5));
   }
 
-  // Shuffle values for random placement
-  for (let i = values.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [values[i], values[j]] = [values[j], values[i]];
-  }
+  shuffle(values);
 
   // Place tokens on available cells
   const count = Math.min(values.length, available.length);
@@ -557,11 +472,22 @@ function placeTokens() {
       col: c, row: r,
       value: values[i],
       collected: false,
-      bobOffset: Math.random() * Math.PI * 2  // random bob phase
+      bobOffset: Math.random() * Math.PI * 2
     });
   }
 
   updateHUD();
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
 }
 
 // ── HUD updates ────────────────────────────────
@@ -574,7 +500,13 @@ function updateHUD() {
   if (collectedNumbers.length === 0) {
     eqEl.textContent = '0';
   } else {
-    eqEl.textContent = collectedNumbers.join(' + ') + ' = ' + currentTotal;
+    // Build equation string with proper +/- signs
+    let eq = '' + collectedNumbers[0];
+    for (let i = 1; i < collectedNumbers.length; i++) {
+      const n = collectedNumbers[i];
+      eq += n < 0 ? ' - ' + Math.abs(n) : ' + ' + n;
+    }
+    eqEl.textContent = eq + ' = ' + currentTotal;
   }
 }
 
@@ -599,8 +531,8 @@ function sizeCanvas() {
 }
 
 // ── Drawing ────────────────────────────────────
-const wallColor = '#1e3a5f';
-const pathColor = '#e0f2fe';
+const bgColor = '#f0f7ff';
+const gridLineColor = 'rgba(147, 197, 253, 0.35)';
 const playerColor = '#3b82f6';
 
 function draw() {
@@ -608,51 +540,43 @@ function draw() {
   const w = cols * cellSize;
   const h = rows * cellSize;
 
-  // Apply shake
   ctx.save();
-  if (now < shakeUntil) {
-    const intensity = 6 * ((shakeUntil - now) / 400);
-    ctx.translate(
-      Math.sin(now * 0.05) * intensity,
-      Math.cos(now * 0.07) * intensity
-    );
-  }
 
   // Background
-  ctx.fillStyle = pathColor;
-  ctx.fillRect(-10, -10, w + 20, h + 20);
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, w, h);
 
-  // Draw cells
-  ctx.strokeStyle = wallColor;
-  ctx.lineCap = 'round';
-  ctx.lineWidth = Math.max(3, cellSize * 0.08);
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const x = col * cellSize;
-      const y = row * cellSize;
-      const cell = grid[row][col];
-
-      if (cell.top)    { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y); ctx.stroke(); }
-      if (cell.right)  { ctx.beginPath(); ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke(); }
-      if (cell.bottom) { ctx.beginPath(); ctx.moveTo(x, y + cellSize); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke(); }
-      if (cell.left)   { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + cellSize); ctx.stroke(); }
-    }
+  // Draw soft grid lines (no walls!)
+  ctx.strokeStyle = gridLineColor;
+  ctx.lineWidth = 1;
+  for (let c = 1; c < cols; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * cellSize, 0);
+    ctx.lineTo(c * cellSize, h);
+    ctx.stroke();
+  }
+  for (let r = 1; r < rows; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * cellSize);
+    ctx.lineTo(w, r * cellSize);
+    ctx.stroke();
   }
 
   // Draw exit gate
   drawGate(now);
 
   // Draw number tokens
-  tokens.forEach((t, i) => {
+  tokens.forEach(t => {
     if (t.collected) return;
     const tx = t.col * cellSize + cellSize / 2;
     const ty = t.row * cellSize + cellSize / 2;
     const bob = Math.sin(now * 0.003 + t.bobOffset) * cellSize * 0.04;
     const pulse = 1 + Math.sin(now * 0.004 + t.bobOffset) * 0.08;
-
     const radius = cellSize * 0.34 * pulse;
-    const color = tokenColors[t.value % tokenColors.length];
+
+    const isNeg = t.value < 0;
+    const color = isNeg ? '#ef4444' : '#22c55e';
+    const displayValue = isNeg ? String(t.value) : String(t.value);
 
     // Circle background
     ctx.fillStyle = color;
@@ -664,17 +588,17 @@ function draw() {
     ctx.shadowBlur = 0;
 
     // White inner circle
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.beginPath();
     ctx.arc(tx, ty + bob, radius * 0.75, 0, Math.PI * 2);
     ctx.fill();
 
     // Number text
     ctx.fillStyle = color;
-    ctx.font = `bold ${cellSize * 0.38}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.font = `bold ${cellSize * 0.34}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(t.value, tx, ty + bob + 1);
+    ctx.fillText(displayValue, tx, ty + bob + 1);
   });
 
   // Draw collect animations
@@ -691,7 +615,7 @@ function draw() {
     ctx.font = `bold ${cellSize * 0.35 * scale}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#22c55e';
+    ctx.fillStyle = a.color;
     ctx.fillText(a.text, a.x, y);
     ctx.restore();
   });
@@ -715,9 +639,11 @@ function draw() {
 
     // Generate new sparkles
     if (Math.random() < 0.3) {
-      const ex = exitCol * cellSize + Math.random() * cellSize;
-      const ey = exitRow * cellSize + Math.random() * cellSize;
-      sparkles.push({ x: ex, y: ey, startTime: now });
+      sparkles.push({
+        x: exitCol * cellSize + Math.random() * cellSize,
+        y: exitRow * cellSize + Math.random() * cellSize,
+        startTime: now
+      });
     }
   }
 
@@ -725,11 +651,11 @@ function draw() {
   drawPlayer();
 
   // Outer border
-  ctx.strokeStyle = wallColor;
-  ctx.lineWidth = Math.max(4, cellSize * 0.1);
+  ctx.strokeStyle = 'rgba(147, 197, 253, 0.6)';
+  ctx.lineWidth = 3;
   ctx.strokeRect(0, 0, w, h);
 
-  ctx.restore(); // undo shake transform
+  ctx.restore();
 }
 
 function drawGate(now) {
@@ -738,11 +664,11 @@ function drawGate(now) {
   const pad = cellSize * 0.08;
 
   if (gateOpen) {
-    // Green open gate
-    ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
+    // Green open gate with pulsing glow
+    const glowPulse = 0.3 + Math.sin(now * 0.005) * 0.1;
+    ctx.fillStyle = `rgba(34, 197, 94, ${glowPulse})`;
     ctx.fillRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
 
-    // Green border
     ctx.strokeStyle = '#22c55e';
     ctx.lineWidth = Math.max(2, cellSize * 0.06);
     ctx.strokeRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
@@ -758,26 +684,20 @@ function drawGate(now) {
     ctx.lineTo(ex + cellSize * 0.75, ey + cellSize * 0.32);
     ctx.stroke();
   } else {
-    // Red locked gate
-    const pulse = 1 + Math.sin(now * 0.003) * 0.05;
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+    // Gray locked gate
+    ctx.fillStyle = 'rgba(156, 163, 175, 0.2)';
     ctx.fillRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
 
-    // Red border with pulse
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = Math.max(2, cellSize * 0.06 * pulse);
+    ctx.strokeStyle = '#9ca3af';
+    ctx.lineWidth = Math.max(2, cellSize * 0.06);
     ctx.strokeRect(ex + pad, ey + pad, cellSize - pad * 2, cellSize - pad * 2);
 
-    // Target number on gate
-    ctx.fillStyle = '#ef4444';
-    ctx.font = `bold ${cellSize * 0.4}px 'Segoe UI', system-ui, sans-serif`;
+    // Lock icon
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = `bold ${cellSize * 0.35}px 'Segoe UI', system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(targetNumber, ex + cellSize / 2, ey + cellSize / 2);
-
-    // Lock icon (small, below number)
-    ctx.font = `${cellSize * 0.18}px system-ui`;
-    ctx.fillText('\u{1F512}', ex + cellSize / 2, ey + cellSize * 0.8);
+    ctx.fillText('\u{1F512}', ex + cellSize / 2, ey + cellSize / 2);
   }
 }
 
@@ -815,15 +735,6 @@ function drawPlayer() {
 }
 
 // ── Movement ───────────────────────────────────
-function canMove(dir) {
-  const cell = grid[playerRow][playerCol];
-  if (dir === 'up' && !cell.top) return true;
-  if (dir === 'down' && !cell.bottom) return true;
-  if (dir === 'left' && !cell.left) return true;
-  if (dir === 'right' && !cell.right) return true;
-  return false;
-}
-
 function movePlayer(dir) {
   if (!gameRunning || animating) return;
   if (!canMove(dir)) return;
@@ -879,15 +790,18 @@ function checkCell() {
       // Collect animation
       const tx = t.col * cellSize + cellSize / 2;
       const ty = t.row * cellSize + cellSize / 2;
-      collectAnimations.push({ x: tx, y: ty, text: '+' + t.value, startTime: Date.now() });
+      const isNeg = t.value < 0;
+      collectAnimations.push({
+        x: tx, y: ty,
+        text: isNeg ? String(t.value) : '+' + t.value,
+        color: isNeg ? '#ef4444' : '#22c55e',
+        startTime: Date.now()
+      });
 
-      if (currentTotal === targetNumber) {
-        // Exact match — unlock gate!
+      // Check if total matches target
+      if (currentTotal === targetNumber && !gateOpen) {
         gateOpen = true;
-        score += 25 * collectedNumbers.length;
-        document.getElementById('score').textContent = score;
         showFeedback('Gate Open!', 'correct');
-        // Add initial sparkles
         for (let i = 0; i < 8; i++) {
           sparkles.push({
             x: exitCol * cellSize + Math.random() * cellSize,
@@ -895,15 +809,10 @@ function checkCell() {
             startTime: Date.now() + i * 50
           });
         }
-      } else if (currentTotal > targetNumber) {
-        // Overshoot — reset!
-        gameRunning = false;
-        shakeUntil = Date.now() + 400;
-        showFeedback('Too many! ' + currentTotal + ' > ' + targetNumber, 'wrong');
-        setTimeout(() => {
-          resetLevel();
-        }, 1200);
-        return;
+      }
+      // If total drifts away from target after gate was open, lock it again
+      if (currentTotal !== targetNumber && gateOpen) {
+        gateOpen = false;
       }
     }
   });
@@ -911,7 +820,7 @@ function checkCell() {
   // Check exit
   if (playerCol === exitCol && playerRow === exitRow && gateOpen) {
     gameRunning = false;
-    score += 50;  // completion bonus
+    score += 50 + 25 * collectedNumbers.length;
     document.getElementById('score').textContent = score;
     setTimeout(showLevelComplete, 300);
   }
@@ -926,42 +835,24 @@ function showFeedback(text, type) {
   setTimeout(() => el.classList.add('hidden'), 800);
 }
 
-// ── Reset current level (on overshoot) ─────────
-function resetLevel() {
-  // Reset tokens
-  tokens.forEach(t => t.collected = false);
-  collectedNumbers = [];
-  currentTotal = 0;
-  gateOpen = false;
-
-  // Reset player position
-  playerCol = 0;
-  playerRow = 0;
-  playerX = 0;
-  playerY = 0;
-  targetX = 0;
-  targetY = 0;
-  animating = false;
-
-  updateHUD();
-  draw();
-
-  showCountdown(() => {
-    gameRunning = true;
-  });
-}
-
 // ── Level complete ─────────────────────────────
 function showLevelComplete() {
   const cfg = levels[level];
-  const stars = collectedNumbers.length <= (cfg.type === 1 ? 1 : cfg.type === 2 ? 2 : 3) ? 3 : 2;
+  const minCollects = cfg.type === 1 ? 1 : cfg.type === 2 ? 2 : 3;
+  const stars = collectedNumbers.length <= minCollects + 1 ? 3 : collectedNumbers.length <= minCollects + 3 ? 2 : 1;
 
   document.getElementById('modalTitle').textContent = 'Great Job!';
   document.getElementById('modalStars').innerHTML =
     '<svg width="40" height="40" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'.repeat(stars);
 
-  const equation = collectedNumbers.join(' + ') + ' = ' + targetNumber;
-  document.getElementById('modalText').textContent = equation;
+  // Build equation string
+  let eq = '' + collectedNumbers[0];
+  for (let i = 1; i < collectedNumbers.length; i++) {
+    const n = collectedNumbers[i];
+    eq += n < 0 ? ' - ' + Math.abs(n) : ' + ' + n;
+  }
+  eq += ' = ' + targetNumber;
+  document.getElementById('modalText').textContent = eq;
 
   const isLastLevel = level >= levels.length - 1;
   document.getElementById('nextBtn').textContent = isLastLevel ? 'Play Again!' : 'Next Level!';
@@ -972,11 +863,11 @@ function showLevelComplete() {
 // ── Start level ────────────────────────────────
 function startLevel() {
   const cfg = levels[level];
+  cols = cfg.cols;
+  rows = cfg.rows;
+
   document.getElementById('levelNum').textContent = level + 1;
   document.getElementById('challengeLabel').textContent = cfg.label;
-
-  initGrid(cfg.cols, cfg.rows);
-  generateMaze();
 
   playerCol = 0;
   playerRow = 0;
@@ -993,7 +884,6 @@ function startLevel() {
   animating = false;
   collectAnimations = [];
   sparkles = [];
-  shakeUntil = 0;
 
   draw();
 
@@ -1079,7 +969,7 @@ window.addEventListener('resize', () => {
 
 // ── Animation loop ─────────────────────────────
 function renderLoop() {
-  if (gameRunning || Date.now() < shakeUntil || collectAnimations.length > 0 || sparkles.length > 0) {
+  if (gameRunning || collectAnimations.length > 0 || sparkles.length > 0) {
     draw();
   }
   requestAnimationFrame(renderLoop);
